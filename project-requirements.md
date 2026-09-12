@@ -20,7 +20,7 @@ option only — not required.
 - **Deployment model**: Public cloud, single region.
 - **Service model boundary to justify in the report**:
   - IaaS (EC2) vs PaaS (Elastic Beanstalk / App Runner) vs SaaS (a hosted no-code tool) —
-    state which was chosen and why the other two were rejected.
+    state which was chosen and why the other two were rejected. (SaaS was chosen)
   - Hint to research: what operational responsibility (patching, scaling, runtime) shifts
     from your team to AWS at each layer.
 
@@ -32,7 +32,7 @@ component in your architecture diagram and README):
 | Concept area | Where it must show up in this project |
 |---|---|
 | Cloud fundamentals | Justification of on-prem vs cloud, and public vs private cloud, for a small F&B business |
-| IaaS/PaaS/SaaS & deployment choices | Explicit statement of chosen model + 2 alternatives considered |
+| SaaS & deployment choices | Explicit statement of chosen model + 2 alternatives considered |
 | VMs, deployment, scaling | Compute choice (EC2 or managed service) + at least one scaling mechanism |
 | Cloud storage & databases | Managed relational DB (RDS) for the stock ledger + object storage (S3) for exports/backups |
 | Data analytics/AI | One interpretable data-driven feature (see Section 6) |
@@ -45,8 +45,8 @@ All rows are compulsory. Choose specific technologies, but every row must be sat
 | Area | Minimum requirement | Acceptable evidence |
 |---|---|---|
 | **Application** | A functioning web application with at least one meaningful user workflow and input validation. Recommended workflow: "record a stock movement" (receive / sell / adjust / transfer), sourced from the ledger model in `stock-inventory-system-summary.md`. | Source code, local run instructions, API test collection or recorded test output. |
-| **Compute and deployment** | Cloud deployment using a VM, managed application platform, container service, or equivalent. Explain the chosen IaaS/PaaS/SaaS boundary. | Infrastructure/configuration files, deployment record, architecture diagram, redacted provider evidence. |
-| **Data layer** | Persistent cloud storage or database with a defined schema/data model. No production credentials or personal data. Minimum tables: `products`, `stock_movements`, and one of `warehouses`/`suppliers`. | Schema/migration file, sample synthetic dataset, storage/database configuration, test output. |
+| **Compute and deployment** | Cloud deployment using a VM, managed application platform, container service, or equivalent. Explain the chosen SaaS boundary. | Infrastructure/configuration files, deployment record, architecture diagram, redacted provider evidence. |
+| **Data layer** | Persistent cloud storage or database with a defined schema/data model. No production credentials or personal data. Minimum tables: `products`, `stock_movements`, and one of `warehouses`/`suppliers`. Explicit input validation rules to be added | Schema/migration file, sample synthetic dataset, storage/database configuration, test output. |
 | **Analytics or AI/ML** | One data-driven feature producing an interpretable output — e.g. low-stock dashboard metric, simple reorder-point forecast, or wastage/spoilage trend. | Notebook/script, dataset provenance, evaluation metric or validation result, example inputs/outputs, limitations. |
 | **Scalability and resilience** | A documented approach to handling demand or component failure; implement at least one mechanism (horizontal scaling, load balancing, caching, health checks, backup/recovery, or managed availability). | Configuration, test procedure, measured/observed result. |
 | **Security** | Authentication/authorisation appropriate to the service, least-privilege access, secure secret handling, restricted network/data access, and validation against one named threat. | Redacted policy/configuration, threat-control mapping, code/configuration, test evidence. |
