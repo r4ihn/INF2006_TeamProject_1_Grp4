@@ -46,7 +46,7 @@ All rows are compulsory. Choose specific technologies, but every row must be sat
 |---|---|---|
 | **Application** | A functioning web application with at least one meaningful user workflow and input validation. Recommended workflow: "record a stock movement" (receive / sell / adjust / transfer), sourced from the ledger model in `stock-inventory-system-summary.md`. | Source code, local run instructions, API test collection or recorded test output. |
 | **Compute and deployment** | Cloud deployment using a VM, managed application platform, container service, or equivalent. Explain the chosen SaaS boundary. | Infrastructure/configuration files, deployment record, architecture diagram, redacted provider evidence. |
-| **Data layer** | Persistent cloud storage or database with a defined schema/data model. No production credentials or personal data. Minimum tables: `products`, `stock_movements`, and one of `warehouses`/`suppliers`. Explicit input validation rules to be added | Schema/migration file, sample synthetic dataset, storage/database configuration, test output. |
+| **Data layer** | Persistent cloud storage or database with a defined schema/data model. No production credentials or personal data. Minimum tables: `products`, `stock_movements`, and one of `warehouses`/`suppliers`. Explicit input validation rules to be added, concurrency control e.g. multiple users adding stock at same time, perishability/expiry to be added in data layer. | Schema/migration file, sample synthetic dataset, storage/database configuration, test output. |
 | **Analytics or AI/ML** | One data-driven feature producing an interpretable output — e.g. low-stock dashboard metric, simple reorder-point forecast, or wastage/spoilage trend. | Notebook/script, dataset provenance, evaluation metric or validation result, example inputs/outputs, limitations. |
 | **Scalability and resilience** | A documented approach to handling demand or component failure; implement at least one mechanism (horizontal scaling, load balancing, caching, health checks, backup/recovery, or managed availability). | Configuration, test procedure, measured/observed result. |
 | **Security** | Authentication/authorisation appropriate to the service, least-privilege access, secure secret handling, restricted network/data access, and validation against one named threat. | Redacted policy/configuration, threat-control mapping, code/configuration, test evidence. |
@@ -68,7 +68,7 @@ label must match the filenames/component names used in your repository and evide
 5. **Data stores** — the stock-movement ledger (source of truth) and any derived
    "current stock" store, if you choose to keep one.
 6. **Observability** — where logs/metrics are collected (e.g. CloudWatch) and what is
-   monitored.
+   monitored (such as failed auth attempts, write failures, latency).
 7. **Data flows** — arrows showing the direction of each request/response and any
    asynchronous event (e.g. a stock movement triggering a low-stock check).
 
