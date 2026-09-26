@@ -6,7 +6,7 @@ function App() {
   const [status, setStatus] = useState("checking...");
 
   useEffect(() => {
-    fetch("http://localhost:3000/health") // The app will fetch this url
+    fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/health`)
     .then((res) => (res.ok ? setStatus("API healthy") : setStatus("API error"))) // If the respond is 200 say API healthy if not API error
     .catch( () => setStatus("API unreachable")); // Catch statement if both statements dont work at all
   
