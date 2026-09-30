@@ -3,6 +3,7 @@ import { api, setUnauthorizedHandler, type StockItem } from './api.ts'
 import { clearSession, loadSession, type Session } from './auth.ts'
 import MovementForm from './components/MovementForm.tsx'
 import MovementList from './components/MovementList.tsx'
+import Recommendations from './components/Recommendations.tsx'
 import SignIn from './components/SignIn.tsx'
 import StockTable from './components/StockTable.tsx'
 import './App.css'
@@ -26,6 +27,7 @@ function Dashboard({ session, onSignOut }: { session: Session; onSignOut: () => 
   const [error, setError] = useState('')
   const [version, setVersion] = useState(0)
   const [productId, setProductId] = useState<number | null>(null)
+  const [tab, setTab] = useState<'stock' | 'reorder'>('stock')
 
   useEffect(() => {
     let cancelled = false
@@ -60,13 +62,25 @@ function Dashboard({ session, onSignOut }: { session: Session; onSignOut: () => 
         </div>
       </header>
 
+      {session.role === 'manager' && (
+        <nav className="tabs" aria-label="Sections">
+          <button type="button" aria-current={tab === 'stock' ? 'page' : undefined} onClick={() => setTab('stock')}>
+            Stock
+          </button>
+          <button type="button" aria-current={tab === 'reorder' ? 'page' : undefined} onClick={() => setTab('reorder')}>
+            Reorder plan
+          </button>
+        </nav>
+      )}
+
       <main className="layout">
         {error && (
           <p className="banner error wide" role="alert">
             {error}
           </p>
         )}
-        {stock && (
+        {tab === 'reorder' && session.role === 'manager' && <Recommendations refreshKey={version} />}
+        {stock && tab === 'stock' && (
           <>
             <ul className="summary wide" aria-label="Stock summary">
               <li>
@@ -79,24 +93,26 @@ function Dashboard({ session, onSignOut }: { session: Session; onSignOut: () => 
                 <strong>{expired}</strong> holding expired stock
               </li>
             </ul>
-            <div className="main-col">
-              <StockTable items={stock} onRecord={setProductId} />
+            <div className="columns wide">
+              <div className="main-col">
+                <StockTable items={stock} onRecord={setProductId} />
+              </div>
+              <aside className="side-col">
+                <MovementForm
+                  items={stock}
+                  role={session.role}
+                  productId={productId}
+                  onProductChange={setProductId}
+                  onRecorded={() => setVersion((v) => v + 1)}
+                />
+              </aside>
             </div>
-            <aside className="side-col">
-              <MovementForm
-                items={stock}
-                role={session.role}
-                productId={productId}
-                onProductChange={setProductId}
-                onRecorded={() => setVersion((v) => v + 1)}
-              />
-            </aside>
             <div className="wide">
               <MovementList items={stock} refreshKey={version} />
             </div>
           </>
         )}
-        {!stock && !error && <p className="muted wide">Loading stock…</p>}
+        {!stock && !error && tab === 'stock' && <p className="muted wide">Loading stock…</p>}
       </main>
     </>
   )

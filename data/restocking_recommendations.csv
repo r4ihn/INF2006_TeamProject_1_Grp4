@@ -1,0 +1,9 @@
+ingredient_id,ingredient_name,unit,forecast_next_week,safety_stock,current_stock,suggested_order_packs,pack_description,suggested_order_units,capped_by_shelf_life,weeks_of_cover_after_order,method
+1,Espresso beans,g,1080.0,163.3,1559.0,0,1 kg bag,0,False,1.4,MA-2
+2,Fresh milk,ml,10460.0,2170.4,5700.0,5,1 L bottle,5000,True,1.0,MA-2
+3,Drinking chocolate,g,162.5,124.5,224.0,1,750 g tub,750,False,6.0,MA-2
+4,Cocoa powder,g,237.5,206.2,257.0,1,500 g tub,500,False,3.2,MA-2
+5,Paper cup 8oz,unit,4.5,4.6,7.0,1,sleeve of 50,50,False,12.7,MA-2
+6,Paper cup 12oz,unit,97.0,24.9,66.0,2,sleeve of 50,100,False,1.7,MA-2
+7,Cup lid 12oz,unit,97.0,24.9,117.0,1,box of 100,100,False,2.2,MA-2
+8,Napkin,unit,101.5,24.1,65.0,1,pack of 250,250,False,3.1,MA-2

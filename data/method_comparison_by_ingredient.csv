@@ -1,0 +1,57 @@
+ingredient_name,method,MAE,MASE
+Cocoa powder,Linear trend (8wk),74.259,0.931
+Cocoa powder,MA-2,63.032,0.79
+Cocoa powder,MA-3,61.347,0.769
+Cocoa powder,MA-4,65.691,0.823
+Cocoa powder,MA-8,69.083,0.866
+Cocoa powder,Mean of all history,81.333,1.019
+Cocoa powder,Naive (last week),79.787,1.0
+Cup lid 12oz,Linear trend (8wk),16.351,1.236
+Cup lid 12oz,MA-2,12.904,0.975
+Cup lid 12oz,MA-3,13.568,1.025
+Cup lid 12oz,MA-4,15.154,1.145
+Cup lid 12oz,MA-8,18.766,1.418
+Cup lid 12oz,Mean of all history,21.251,1.606
+Cup lid 12oz,Naive (last week),13.234,1.0
+Drinking chocolate,Linear trend (8wk),78.153,0.948
+Drinking chocolate,MA-2,79.521,0.965
+Drinking chocolate,MA-3,79.433,0.963
+Drinking chocolate,MA-4,74.601,0.905
+Drinking chocolate,MA-8,81.449,0.988
+Drinking chocolate,Mean of all history,77.579,0.941
+Drinking chocolate,Naive (last week),82.447,1.0
+Espresso beans,Linear trend (8wk),207.555,1.151
+Espresso beans,MA-2,172.436,0.956
+Espresso beans,MA-3,182.745,1.013
+Espresso beans,MA-4,202.787,1.124
+Espresso beans,MA-8,226.197,1.254
+Espresso beans,Mean of all history,241.433,1.338
+Espresso beans,Naive (last week),180.383,1.0
+Fresh milk,Linear trend (8wk),2223.351,1.349
+Fresh milk,MA-2,1766.702,1.072
+Fresh milk,MA-3,1917.801,1.164
+Fresh milk,MA-4,2070.638,1.256
+Fresh milk,MA-8,2420.319,1.468
+Fresh milk,Mean of all history,2606.542,1.581
+Fresh milk,Naive (last week),1648.298,1.0
+Napkin,Linear trend (8wk),18.72,1.294
+Napkin,MA-2,14.032,0.97
+Napkin,MA-3,15.276,1.056
+Napkin,MA-4,16.952,1.172
+Napkin,MA-8,19.881,1.374
+Napkin,Mean of all history,22.537,1.558
+Napkin,Naive (last week),14.468,1.0
+Paper cup 12oz,Linear trend (8wk),16.351,1.236
+Paper cup 12oz,MA-2,12.904,0.975
+Paper cup 12oz,MA-3,13.568,1.025
+Paper cup 12oz,MA-4,15.154,1.145
+Paper cup 12oz,MA-8,18.766,1.418
+Paper cup 12oz,Mean of all history,21.251,1.606
+Paper cup 12oz,Naive (last week),13.234,1.0
+Paper cup 8oz,Linear trend (8wk),4.222,1.225
+Paper cup 8oz,MA-2,3.447,1.0
+Paper cup 8oz,MA-3,3.511,1.019
+Paper cup 8oz,MA-4,3.66,1.062
+Paper cup 8oz,MA-8,3.689,1.07
+Paper cup 8oz,Mean of all history,3.631,1.054
+Paper cup 8oz,Naive (last week),3.447,1.0

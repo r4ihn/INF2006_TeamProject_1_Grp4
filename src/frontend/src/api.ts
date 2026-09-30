@@ -53,6 +53,54 @@ export interface MovementResult {
   onHand: number
 }
 
+export interface OrderSuggestion {
+  packs: number
+  units: number
+  cappedByShelfLife: boolean
+  weeksOfCover: number | null
+}
+
+export interface Recommendation {
+  productId: number
+  sku: string
+  name: string
+  unit: 'g' | 'ml' | 'unit'
+  packSize: number
+  packDescription: string | null
+  onHand: number
+  expiredQuantity: number
+  forecastNextWeek: number
+  safetyStock: number
+  // Backtest error of the method for this item relative to "same as last week" (1.0); lower is better.
+  methodMase: number | null
+  stockAtRun: number
+  published: OrderSuggestion
+  suggested: OrderSuggestion
+}
+
+interface Outcome {
+  serviceLevel: number
+  stockoutDays: number
+}
+
+export interface ForecastRun {
+  runId: number
+  method: string
+  asOf: string
+  serviceZ: number
+  coverWeeks: number
+  source: string
+  evaluation: {
+    accuracy?: { method: string; mase: number; baselineMethod: string; baselineMase: number }
+    simulatedYear?: { serviceZ: number; withoutForecast: Outcome | null; withForecast: Outcome | null }
+  }
+}
+
+export interface RecommendationsResponse {
+  run: ForecastRun | null
+  items: Recommendation[]
+}
+
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
@@ -109,6 +157,7 @@ export const api = {
     if (opts.beforeId) q.set('beforeId', String(opts.beforeId))
     return request<Movement[]>(`/movements?${q}`)
   },
+  recommendations: () => request<RecommendationsResponse>('/recommendations'),
   record: (m: NewMovement) =>
     request<MovementResult>('/movements', { method: 'POST', body: JSON.stringify(m) }),
 }

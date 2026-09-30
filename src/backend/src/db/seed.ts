@@ -42,6 +42,7 @@ export interface SeedResult {
   suppliers: number;
   products: number;
   movements: number;
+  recommendations: number;
 }
 
 // Load the synthetic demo dataset (data/) into an empty database. Refuses to run on a database that
@@ -61,7 +62,7 @@ export async function seed(
   return withTransaction(db, async (c) => {
     if (opts.reset) {
       await c.query(
-        "TRUNCATE stock_movements, products, suppliers RESTART IDENTITY CASCADE"
+        "TRUNCATE stock_movements, products, suppliers, forecast_runs RESTART IDENTITY CASCADE"
       );
     } else if (
       (await c.query("SELECT 1 FROM stock_movements LIMIT 1")).rowCount
@@ -153,12 +154,101 @@ export async function seed(
       `SELECT setval('batch_id_seq', COALESCE((SELECT max(substring(batch_id from '^B(\\d+)$')::int) FROM stock_movements), 1))`
     );
 
+    const recommendations = await seedRecommendations(
+      c,
+      dir,
+      movements[movements.length - 1]!.occurred_at!.slice(0, 10)
+    );
+
     return {
       suppliers: SUPPLIERS.length,
       products: ingredients.length,
       movements: movements.length,
+      recommendations,
     };
   });
+}
+
+// Constants of the analytics method (forecast_script.py): order to cover one week, ~95% service level.
+const COVER_WEEKS = 1.0;
+const SERVICE_Z = 1.65;
+
+// Load the analytics team's published recommendations and the headline results that accompany them.
+async function seedRecommendations(
+  c: pg.PoolClient,
+  dir: string,
+  asOf: string
+): Promise<number> {
+  const recs = readCsv(dir, "restocking_recommendations.csv");
+  if (recs.length === 0) return 0;
+  const method = recs[0]!.method!;
+
+  const pooled = readCsv(dir, "method_comparison.csv");
+  const mase = (name: string) =>
+    Number(pooled.find((r) => r.method === name)?.MASE);
+  const byItem = readCsv(dir, "method_comparison_by_ingredient.csv");
+  const policy = readCsv(dir, "policy_comparison.csv").filter(
+    (r) => Number(r.safety_z) === SERVICE_Z
+  );
+  const outcome = (label: string) => {
+    const r = policy.find((p) => p.policy === label);
+    return r
+      ? {
+          serviceLevel: Number(r.service_level),
+          stockoutDays: Number(r.stockout_days_total),
+        }
+      : null;
+  };
+  const evaluation = {
+    accuracy: {
+      method,
+      mase: mase(method),
+      baselineMethod: "Naive (last week)",
+      baselineMase: mase("Naive (last week)"),
+    },
+    simulatedYear: {
+      serviceZ: SERVICE_Z,
+      withoutForecast: outcome("Fixed level (no forecast)"),
+      withForecast: outcome(method),
+    },
+  };
+
+  const run = await c.query(
+    `INSERT INTO forecast_runs (method, as_of, service_z, cover_weeks, source, evaluation)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING run_id`,
+    [
+      method,
+      asOf,
+      SERVICE_Z,
+      COVER_WEEKS,
+      "data/restocking_recommendations.csv",
+      evaluation,
+    ]
+  );
+  for (const r of recs) {
+    const itemMase = byItem.find(
+      (b) => b.ingredient_name === r.ingredient_name && b.method === method
+    );
+    await c.query(
+      `INSERT INTO reorder_recommendations
+         (run_id, product_id, forecast_next_week, safety_stock, stock_at_run, suggested_order_packs,
+          suggested_order_units, capped_by_shelf_life, weeks_of_cover_after_order, method_mase)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        run.rows[0].run_id,
+        r.ingredient_id,
+        r.forecast_next_week,
+        r.safety_stock,
+        r.current_stock,
+        r.suggested_order_packs,
+        r.suggested_order_units,
+        r.capped_by_shelf_life === "True",
+        blank(r.weeks_of_cover_after_order),
+        blank(itemMase?.MASE),
+      ]
+    );
+  }
+  return recs.length;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -166,7 +256,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   seed(getPool(), { reset: process.argv.includes("--reset") })
     .then((r) =>
       console.log(
-        `Seeded ${r.suppliers} suppliers, ${r.products} products, ${r.movements} movements`
+        `Seeded ${r.suppliers} suppliers, ${r.products} products, ${r.movements} movements, ${r.recommendations} recommendations`
       )
     )
     .catch((err) => {

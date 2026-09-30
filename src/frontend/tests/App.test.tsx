@@ -2,13 +2,14 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../src/App.tsx'
-import { batches, makeToken, milk, mockFetch, movement, napkins } from './helpers.ts'
+import { batches, makeToken, milk, milkRec, mockFetch, movement, napkins, run } from './helpers.ts'
 
 const routes = {
   'GET /health': () => ({ body: { status: 'ok' } }),
   'GET /stock': () => ({ body: [milk, napkins] }),
   'GET /movements': () => ({ body: [movement()] }),
   'GET /products/2/batches': () => ({ body: batches }),
+  'GET /recommendations': () => ({ body: { run, items: [milkRec] } }),
 }
 
 describe('App', () => {
@@ -82,5 +83,25 @@ describe('App', () => {
     expect((await screen.findAllByRole('alert'))[0]).toHaveTextContent('Cannot reach the server')
     expect(await screen.findByText('API unreachable')).toBeInTheDocument()
     globalThis.fetch = real
+  })
+
+  it('gives managers a Reorder plan tab and keeps it from staff', async () => {
+    sessionStorage.setItem('cafestock.token', makeToken('staff'))
+    const api = mockFetch(routes)
+    const staff = render(<App />)
+    await screen.findByText('Current stock')
+    expect(screen.queryByRole('button', { name: 'Reorder plan' })).not.toBeInTheDocument()
+    staff.unmount()
+
+    sessionStorage.setItem('cafestock.token', makeToken('manager'))
+    render(<App />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Reorder plan' }))
+    expect(await screen.findByText('5 × 1 L bottle')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reorder plan' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByText('Current stock')).not.toBeInTheDocument()
+    expect(api.count('GET', '/recommendations')).toBe(1)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Stock' }))
+    expect(await screen.findByText('Current stock')).toBeInTheDocument()
   })
 })

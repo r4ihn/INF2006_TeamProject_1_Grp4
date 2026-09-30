@@ -46,7 +46,7 @@ export async function resetDb(): Promise<void> {
   const { rows } = await db().query("SELECT current_database() AS name");
   expect(rows[0].name).toMatch(/_test$/);
   await db().query(
-    "TRUNCATE stock_movements, products, suppliers RESTART IDENTITY CASCADE"
+    "TRUNCATE stock_movements, products, suppliers, forecast_runs RESTART IDENTITY CASCADE"
   );
   await db().query("SELECT setval('batch_id_seq', 1, false)");
   await db().query("INSERT INTO suppliers (name) VALUES ('Test Supplier')");
@@ -55,6 +55,12 @@ export async function resetDb(): Promise<void> {
                            reorder_threshold, reorder_quantity)
      VALUES ('T-MILK', 'Milk', 'ml', 7, 'Chiller', 1, 3000, 4000),
             ('T-CUPS', 'Cups', 'unit', 730, 'Dry Store', 1, 25, 50)`
+  );
+  await db().query(
+    "UPDATE products SET pack_size = 1000, pack_description = '1 L bottle' WHERE sku = 'T-MILK'"
+  );
+  await db().query(
+    "UPDATE products SET pack_size = 50, pack_description = 'sleeve of 50' WHERE sku = 'T-CUPS'"
   );
 }
 

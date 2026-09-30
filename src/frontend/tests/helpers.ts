@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { Batch, Movement, StockItem } from '../src/api.ts'
+import type { Batch, ForecastRun, Movement, Recommendation, StockItem } from '../src/api.ts'
 
 const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 
@@ -92,4 +92,55 @@ export function mockFetch(routes: Record<string, Handler>): FetchMock {
     }),
   )
   return mock
+}
+
+export const run: ForecastRun = {
+  runId: 1,
+  method: 'MA-2',
+  asOf: '2025-03-23',
+  serviceZ: 1.65,
+  coverWeeks: 1,
+  source: 'data/restocking_recommendations.csv',
+  evaluation: {
+    accuracy: { method: 'MA-2', mase: 0.963, baselineMethod: 'Naive (last week)', baselineMase: 1 },
+    simulatedYear: {
+      serviceZ: 1.65,
+      withoutForecast: { serviceLevel: 0.9165, stockoutDays: 264 },
+      withForecast: { serviceLevel: 0.9542, stockoutDays: 172 },
+    },
+  },
+}
+
+export const milkRec: Recommendation = {
+  productId: 1,
+  sku: 'ING-002',
+  name: 'Fresh milk',
+  unit: 'ml',
+  packSize: 1000,
+  packDescription: '1 L bottle',
+  onHand: 5700,
+  expiredQuantity: 5700,
+  forecastNextWeek: 10460,
+  safetyStock: 2170.4,
+  methodMase: 1.072,
+  stockAtRun: 5700,
+  published: { packs: 5, units: 5000, cappedByShelfLife: true, weeksOfCover: 1 },
+  suggested: { packs: 5, units: 5000, cappedByShelfLife: true, weeksOfCover: 1 },
+}
+
+export const beansRec: Recommendation = {
+  productId: 3,
+  sku: 'ING-001',
+  name: 'Espresso beans',
+  unit: 'g',
+  packSize: 1000,
+  packDescription: '1 kg bag',
+  onHand: 1559,
+  expiredQuantity: 0,
+  forecastNextWeek: 1080,
+  safetyStock: 163.3,
+  methodMase: 0.956,
+  stockAtRun: 1559,
+  published: { packs: 0, units: 0, cappedByShelfLife: false, weeksOfCover: 1.4 },
+  suggested: { packs: 0, units: 0, cappedByShelfLife: false, weeksOfCover: 1.4 },
 }

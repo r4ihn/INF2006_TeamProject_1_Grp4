@@ -41,6 +41,36 @@ describe("demo dataset", () => {
     ]);
   });
 
+  it("loads the analytics team's recommendations, and live stock reproduces them", async () => {
+    const res = await asManager().get("/recommendations");
+    expect(res.status).toBe(200);
+    expect(res.body.run).toMatchObject({
+      method: "MA-2",
+      asOf: "2025-03-23",
+      serviceZ: 1.65,
+    });
+    expect(res.body.run.evaluation.accuracy).toMatchObject({
+      mase: 0.963,
+      baselineMase: 1,
+    });
+    expect(
+      res.body.run.evaluation.simulatedYear.withForecast.stockoutDays
+    ).toBe(172);
+    expect(res.body.items).toHaveLength(8);
+    for (const item of res.body.items) {
+      expect(item.onHand).toBe(item.stockAtRun); // nothing has moved since the forecast
+      expect(item.suggested.packs).toBe(item.published.packs);
+      expect(item.suggested.cappedByShelfLife).toBe(
+        item.published.cappedByShelfLife
+      );
+    }
+    const milk = res.body.items.find(
+      (i: { name: string }) => i.name === "Fresh milk"
+    );
+    expect(milk.suggested).toMatchObject({ packs: 5, cappedByShelfLife: true });
+    expect(milk.methodMase).toBe(1.072);
+  });
+
   it("keeps provenance on every seeded row", async () => {
     const { rows } = await db().query(
       "SELECT source, count(*)::int AS n FROM stock_movements GROUP BY source"

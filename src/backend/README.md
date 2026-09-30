@@ -89,6 +89,7 @@ All bodies are JSON; errors look like `{ "error": "CODE", "message": "..." }`.
 | `GET /stock[?lowOnly=true]` | Derived current stock; `isLow` means strictly below `reorderThreshold`. |
 | `GET /movements[?productId&movementType&beforeId&limit]` | Ledger, newest first, cursor paging with `beforeId`. |
 | `POST /movements` | Record a movement (below). |
+| `GET /recommendations` | **Manager only.** The reorder plan: the analytics run's forecast and safety stock per item, plus a suggested order recomputed from stock as it is now (see below). |
 
 `POST /movements` body: `{ productId, movementType, quantity, batchId?, expiryDate?, reason? }`
 
@@ -102,6 +103,25 @@ All bodies are JSON; errors look like `{ "error": "CODE", "message": "..." }`.
 
 Responses: `201 { movements: [...], onHand }`, `400` validation, `404` unknown product,
 `409` insufficient stock, `422` unknown batch / already expired / constraint violation.
+
+## Reorder recommendations
+
+The analytics work produced a weekly forecast per ingredient (moving average of the last two complete weeks),
+a safety stock (1.65 x the spread of the last 8 weeks) and a suggested order. The seed loads those published
+results from `data/restocking_recommendations.csv` into `forecast_runs` / `reorder_recommendations`, together
+with the headline evaluation (`method_comparison*.csv`, `policy_comparison.csv`).
+
+`GET /recommendations` returns the forecast and safety stock as published, and **recomputes the order quantity
+against live stock** with the same rule (`src/analytics/reorder.ts`):
+
+```
+need  = forecast x cover weeks + safety stock
+packs = ceil(max(0, need - on hand) / pack size), at most half a shelf life's worth of forecast sales
+```
+
+`tests/reorder.test.ts` feeds that rule the analytics team's inputs and checks it reproduces their published order
+for every ingredient (this is the data/AI validation test), plus hand-checkable cases. The forecast itself is not
+recomputed here; it is as of the last day of sales history (`run.asOf`, 23 Mar 2025 for the demo data).
 
 ## Demo data
 

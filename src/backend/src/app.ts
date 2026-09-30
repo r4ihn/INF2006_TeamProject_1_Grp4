@@ -10,6 +10,7 @@ import { createErrorHandler, HttpError } from "./errors.js";
 import { requestLogger, silentLogger, type Logger } from "./logger.js";
 import { catalogRouter } from "./routes/catalog.js";
 import { movementsRouter } from "./routes/movements.js";
+import { recommendationsRouter } from "./routes/recommendations.js";
 
 export interface AppOptions {
   // Database access, resolved per request so the app can start (and /health can answer) without one.
@@ -43,6 +44,7 @@ export function createApp(options: AppOptions = {}): Express {
   app.use(authenticate(verify, log));
   app.use(catalogRouter(db));
   app.use(movementsRouter(db, log));
+  app.use(recommendationsRouter(db, log));
   app.use((req) => {
     throw new HttpError(
       404,

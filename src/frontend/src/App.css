@@ -48,30 +48,35 @@
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   max-width: 1280px;
   margin: 0 auto;
   padding: 20px 24px 48px;
 }
-.wide {
-  grid-column: 1 / -1;
+/* The form column is sticky, so it lives in its own grid: a sticky element may travel as far as its
+   parent's box, and that must end before the movements table below. */
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 20px;
+  align-items: start;
 }
-/* Let grid items shrink below their content so wide tables scroll inside their card, not the page. */
+.side-col {
+  position: sticky;
+  top: 16px;
+}
 .main-col,
 .side-col,
 .wide {
   min-width: 0;
 }
-.side-col {
-  align-self: start;
-  position: sticky;
-  top: 16px;
-}
 @media (max-width: 960px) {
   .layout {
-    grid-template-columns: minmax(0, 1fr);
     padding: 16px;
+  }
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
   }
   .side-col {
     position: static;
@@ -297,4 +302,33 @@ button.more {
 }
 .signin h1 {
   font-size: 28px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  max-width: 1280px;
+  margin: 12px auto 0;
+  padding: 0 24px;
+}
+.tabs button[aria-current='page'] {
+  background: var(--primary);
+  color: var(--primary-text);
+  border-color: var(--primary);
+}
+@media (max-width: 960px) {
+  .tabs {
+    padding: 0 16px;
+  }
+}
+
+.plain {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.order {
+  font-size: 15px;
 }
