@@ -1,10 +1,42 @@
 import request from "supertest";
+import { loadAuthConfig } from "../src/auth/config.js";
+import { mintLocalToken } from "../src/auth/localTokens.js";
+import type { Role } from "../src/auth/verifier.js";
+import type { LogFields, Logger } from "../src/logger.js";
 import { expect } from "vitest";
 import { createApp } from "../src/app.js";
 import { getPool } from "../src/db/pool.js";
 
-export const app = createApp();
+// Everything the app logged, so tests can assert on what is (and is not) recorded.
+export const logs: { level: string; event: string; fields: LogFields }[] = [];
+const spy =
+  (level: string) =>
+  (event: string, fields: LogFields = {}) =>
+    logs.push({ level, event, fields });
+const log: Logger = {
+  info: spy("info"),
+  warn: spy("warn"),
+  error: spy("error"),
+};
+
+export const app = createApp({ log });
 export const db = () => getPool();
+
+export const authConfig = loadAuthConfig();
+if (authConfig.mode !== "local") throw new Error("tests need AUTH_MODE=local");
+
+export const tokens: Record<Role, string> = {
+  staff: await mintLocalToken(authConfig, { role: "staff", sub: "test-staff" }),
+  manager: await mintLocalToken(authConfig, {
+    role: "manager",
+    sub: "test-manager",
+  }),
+};
+
+// A supertest agent that sends the given role's bearer token with every request.
+export const as = (role: Role) =>
+  request.agent(app).set("Authorization", `Bearer ${tokens[role]}`);
+export const asManager = () => as("manager");
 
 export const MILK = 1; // ml, shelf life 7 days, reorder threshold 3000
 export const CUPS = 2; // whole units, shelf life 730 days, reorder threshold 25
@@ -36,7 +68,7 @@ export interface MovementInput {
 }
 
 export const post = (body: unknown) =>
-  request(app)
+  asManager()
     .post("/movements")
     .send(body as object);
 

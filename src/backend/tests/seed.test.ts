@@ -1,8 +1,7 @@
-import request from "supertest";
 import { beforeAll, describe, expect, it } from "vitest";
 import { migrate } from "../src/db/migrate.js";
 import { seed } from "../src/db/seed.js";
-import { app, db, post, resetDb } from "./helpers.js";
+import { asManager, db, post, resetDb } from "./helpers.js";
 
 describe("demo dataset", () => {
   beforeAll(async () => {
@@ -18,7 +17,7 @@ describe("demo dataset", () => {
   });
 
   it("derives the same current stock the analytics team computed", async () => {
-    const { body } = await request(app).get("/stock");
+    const { body } = await asManager().get("/stock");
     const byName = Object.fromEntries(
       body.map((s: { name: string; onHand: number }) => [s.name, s.onHand])
     );

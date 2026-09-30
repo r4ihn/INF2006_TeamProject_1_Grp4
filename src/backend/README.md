@@ -14,7 +14,7 @@ psql -U postgres -c "CREATE DATABASE cafestock OWNER cafestock;"
 psql -U postgres -c "CREATE DATABASE cafestock_test OWNER cafestock;"
 
 cd src/backend
-cp .env.example .env          # DATABASE_URL and PORT
+cp .env.example .env          # database, auth and CORS settings
 npm ci
 npm run db:migrate            # apply migrations/*.sql
 npm run db:seed               # load the demo dataset from ../../data (add -- --reset to wipe and reload)
@@ -48,9 +48,38 @@ Rules enforced **in the database**, so they hold for every writer and not only t
 - Sign must match the type, a batch is created by exactly one `RECEIVE`, stock cannot be received already
   expired, and non-`RECEIVE` rows must reference an existing batch.
 
+## Authentication and roles
+
+Every route except `GET /health` needs `Authorization: Bearer <token>`. There are two roles, carried in
+the token's `cognito:groups` claim:
+
+| Role | Can do |
+|---|---|
+| `staff` | Read everything; record `RECEIVE` and `SELL` movements. |
+| `manager` | Everything staff can, plus `SPOILAGE` write-offs and `ADJUST` stocktake corrections. |
+
+Both environments use the same verifier and the same claims, selected by `AUTH_MODE` (there is no
+default, so the API will not start unprotected):
+
+- `local`: tokens signed with `AUTH_LOCAL_SECRET`; mint one with `npm run token -- staff` or
+  `npm run token -- manager [--sub alice] [--ttl 3600]`. Needs no cloud account, so anyone can reproduce
+  the security tests. Refused when `NODE_ENV=production`.
+- `cognito`: tokens are Cognito **access** tokens, verified against the user pool's published keys
+  (RS256, issuer and app client checked). Set `COGNITO_REGION`, `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID`.
+
+```bash
+TOKEN=$(npm run --silent token -- manager)
+curl -H "Authorization: Bearer $TOKEN" localhost:3000/stock
+```
+
+Responses: `401` missing/invalid/expired token (`WWW-Authenticate: Bearer`), `403` valid token but no
+role, or a staff user attempting a manager-only movement. Each movement records who made it
+(`recordedBy`). Every request gets an `X-Request-Id` and produces one JSON log line; failed logins and
+denied actions are logged with a reason but never the token or request body.
+
 ## API
 
-No authentication yet (next step). All bodies are JSON; errors look like `{ "error": "CODE", "message": "..." }`.
+All bodies are JSON; errors look like `{ "error": "CODE", "message": "..." }`.
 
 | Method & path | Notes |
 |---|---|
@@ -68,7 +97,8 @@ No authentication yet (next step). All bodies are JSON; errors look like `{ "err
 - `RECEIVE`: batch id is generated (`B000253`, ...) and expiry defaults to today + the product's shelf life.
 - `SELL` without `batchId` uses first-expiry-first-out and may produce several ledger rows.
 - `SPOILAGE` and `ADJUST` require `batchId` and `reason`.
-- The server sets the timestamp and `source: "app"`; clients cannot back-date or forge provenance.
+- `SPOILAGE` and `ADJUST` need a manager token (403 otherwise).
+- The server sets the timestamp, `source: "app"` and `recordedBy`; clients cannot back-date or forge provenance.
 
 Responses: `201 { movements: [...], onHand }`, `400` validation, `404` unknown product,
 `409` insufficient stock, `422` unknown batch / already expired / constraint violation.

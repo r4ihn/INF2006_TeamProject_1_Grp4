@@ -1,5 +1,6 @@
 import type { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
+import type { Logger } from "./logger.js";
 
 export class HttpError extends Error {
   constructor(
@@ -23,45 +24,51 @@ const PG_ERRORS: Record<string, { status: number; code: string }> = {
   "23514": { status: 422, code: "CONSTRAINT_VIOLATION" },
 };
 
-export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
-  if (res.headersSent) {
-    next(err);
-    return;
-  }
-  if (err instanceof HttpError) {
-    res
-      .status(err.status)
-      .json({ error: err.code, message: err.message, details: err.details });
-    return;
-  }
-  if (err instanceof ZodError) {
-    res.status(400).json({
-      error: "VALIDATION_ERROR",
-      message: "Request failed validation",
-      details: err.issues.map((i) => ({
-        path: i.path.join("."),
-        message: i.message,
-      })),
+export const createErrorHandler =
+  (log: Logger): ErrorRequestHandler =>
+  (err, _req, res, next) => {
+    if (res.headersSent) {
+      next(err);
+      return;
+    }
+    if (err instanceof HttpError) {
+      res
+        .status(err.status)
+        .json({ error: err.code, message: err.message, details: err.details });
+      return;
+    }
+    if (err instanceof ZodError) {
+      res.status(400).json({
+        error: "VALIDATION_ERROR",
+        message: "Request failed validation",
+        details: err.issues.map((i) => ({
+          path: i.path.join("."),
+          message: i.message,
+        })),
+      });
+      return;
+    }
+    if (err?.type === "entity.parse.failed") {
+      res.status(400).json({
+        error: "INVALID_JSON",
+        message: "Request body is not valid JSON",
+      });
+      return;
+    }
+    const mapped =
+      typeof err?.code === "string" ? PG_ERRORS[err.code] : undefined;
+    if (mapped) {
+      res
+        .status(mapped.status)
+        .json({ error: mapped.code, message: err.message });
+      return;
+    }
+    log.error("unhandled_error", {
+      requestId: res.locals.requestId,
+      code: err?.code,
+      message: err?.message,
     });
-    return;
-  }
-  if (err?.type === "entity.parse.failed") {
-    res.status(400).json({
-      error: "INVALID_JSON",
-      message: "Request body is not valid JSON",
-    });
-    return;
-  }
-  const mapped =
-    typeof err?.code === "string" ? PG_ERRORS[err.code] : undefined;
-  if (mapped) {
     res
-      .status(mapped.status)
-      .json({ error: mapped.code, message: err.message });
-    return;
-  }
-  console.error(err);
-  res
-    .status(500)
-    .json({ error: "INTERNAL_ERROR", message: "Unexpected server error" });
-};
+      .status(500)
+      .json({ error: "INTERNAL_ERROR", message: "Unexpected server error" });
+  };

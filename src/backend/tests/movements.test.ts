@@ -1,7 +1,6 @@
-import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
-  app,
+  asManager,
   CUPS,
   db,
   MILK,
@@ -32,12 +31,12 @@ describe("recording stock movements", () => {
       source: "app",
     });
 
-    const stock = await request(app).get("/stock");
+    const stock = await asManager().get("/stock");
     expect(
       stock.body.find((s: { productId: number }) => s.productId === MILK).onHand
     ).toBe(700);
 
-    const ledger = await request(app)
+    const ledger = await asManager()
       .get("/movements")
       .query({ productId: MILK });
     expect(ledger.body.map((m: { quantity: number }) => m.quantity)).toEqual([
@@ -79,7 +78,7 @@ describe("recording stock movements", () => {
       [later, -20],
     ]);
 
-    const batches = await request(app).get(`/products/${MILK}/batches`);
+    const batches = await asManager().get(`/products/${MILK}/batches`);
     expect(batches.body).toEqual([
       expect.objectContaining({ batchId: later, remaining: 80 }),
     ]);
@@ -118,11 +117,11 @@ describe("recording stock movements", () => {
 
   it("lists movements newest first with paging", async () => {
     for (let i = 0; i < 3; i++) await receive(CUPS, 10 + i);
-    const page1 = await request(app).get("/movements").query({ limit: 2 });
+    const page1 = await asManager().get("/movements").query({ limit: 2 });
     expect(page1.body.map((m: { quantity: number }) => m.quantity)).toEqual([
       12, 11,
     ]);
-    const page2 = await request(app)
+    const page2 = await asManager()
       .get("/movements")
       .query({ limit: 2, beforeId: page1.body[1].movementId });
     expect(page2.body.map((m: { quantity: number }) => m.quantity)).toEqual([
@@ -303,7 +302,7 @@ describe("input validation", () => {
   });
 
   it("400 for malformed JSON", async () => {
-    const res = await request(app)
+    const res = await asManager()
       .post("/movements")
       .set("Content-Type", "application/json")
       .send("{oops");

@@ -1,7 +1,9 @@
 import { Router } from "express";
 import type { Pool, PoolClient } from "pg";
+import { getUser } from "../auth/middleware.js";
 import { withTransaction } from "../db/pool.js";
 import { HttpError } from "../errors.js";
+import type { Logger } from "../logger.js";
 import {
   listMovementsQuery,
   movementBody,
@@ -11,7 +13,7 @@ import {
 const MOVEMENT_COLUMNS = `
   movement_id AS "movementId", occurred_at AS "occurredAt", product_id AS "productId",
   movement_type AS "movementType", quantity, batch_id AS "batchId", expiry_date AS "expiryDate",
-  storage_location AS "storageLocation", reason, source`;
+  storage_location AS "storageLocation", reason, source, recorded_by AS "recordedBy"`;
 
 interface Product {
   unit: string;
@@ -125,12 +127,31 @@ async function planRows(
   return plan;
 }
 
-export function movementsRouter(db: () => Pool): Router {
+// Staff record the day-to-day flow of stock. Writing off spoilage and stocktake corrections change
+// stock without a matching delivery or sale, so they are restricted to managers.
+const MANAGER_ONLY = new Set<string>(["SPOILAGE", "ADJUST"]);
+
+export function movementsRouter(db: () => Pool, log: Logger): Router {
   const router = Router();
 
   // Record a stock movement. One request can become several ledger rows (a sale that spans batches).
   router.post("/movements", async (req, res) => {
     const m = movementBody.parse(req.body);
+    const user = getUser(res);
+    if (MANAGER_ONLY.has(m.movementType) && user.role !== "manager") {
+      log.warn("authz_denied", {
+        user: user.sub,
+        role: user.role,
+        required: "manager",
+        action: `movement:${m.movementType}`,
+        requestId: res.locals.requestId,
+      });
+      throw new HttpError(
+        403,
+        "FORBIDDEN",
+        `Only managers can record ${m.movementType} movements`
+      );
+    }
 
     const result = await withTransaction(db(), async (c) => {
       // Serialise all writers for this product, so the stock checks below and the database
@@ -162,8 +183,8 @@ export function movementsRouter(db: () => Pool): Router {
       for (const r of plan) {
         const ins = await c.query(
           `INSERT INTO stock_movements
-             (product_id, movement_type, quantity, batch_id, expiry_date, storage_location, reason, source)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, 'app')
+             (product_id, movement_type, quantity, batch_id, expiry_date, storage_location, reason, source, recorded_by)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, 'app', $8)
            RETURNING ${MOVEMENT_COLUMNS}`,
           [
             m.productId,
@@ -173,6 +194,7 @@ export function movementsRouter(db: () => Pool): Router {
             r.expiryDate,
             r.storageLocation,
             m.reason ?? null,
+            user.sub,
           ]
         );
         inserted.push(ins.rows[0]);

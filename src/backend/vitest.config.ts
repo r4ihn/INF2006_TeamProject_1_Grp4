@@ -6,7 +6,11 @@ export const TEST_DATABASE_URL =
 
 export default defineConfig({
   test: {
-    env: { DATABASE_URL: TEST_DATABASE_URL },
+    env: {
+      DATABASE_URL: TEST_DATABASE_URL,
+      AUTH_MODE: "local",
+      AUTH_LOCAL_SECRET: "test-only-secret-0123456789-abcdefghij",
+    },
     globalSetup: ["tests/globalSetup.ts"],
     // The tests share one Postgres database, so files must not run at the same time.
     fileParallelism: false,
