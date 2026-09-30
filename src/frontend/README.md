@@ -1,75 +1,41 @@
-# React + TypeScript + Vite
+# CafeStock frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript single-page app (Vite). It talks to the CafeStock API in `../backend`.
 
-Currently, two official plugins are available:
+## Screens
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Sign in**: paste an access token (development). In the cloud this is replaced by Cognito's hosted sign-in.
+- **Stock**: current stock derived from the ledger, with "Reorder now" and "expired stock" flags and a low-stock filter.
+- **Record a movement**: receive delivery, record usage/sale (earliest-expiry batch first, or pick one), and, for managers only, write off spoilage or make a stocktake adjustment. Errors from the API (for example "Only 55 in stock") are shown as-is.
+- **Recent movements**: the ledger, newest first, with who recorded each entry.
 
-## React Compiler
+Staff accounts see the manager-only movement types greyed out. That is a convenience only: the API enforces the permissions.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Run it
 
-## Expanding the ESLint configuration
+Start the API first (see `../backend/README.md`), then:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+cd src/frontend
+cp .env.example .env     # VITE_API_URL, default http://localhost:3000
+npm ci
+npm run dev              # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Sign in with a token from the backend:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+cd ../backend && npm run --silent token -- manager     # or: staff
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+The API only accepts browser requests from `CORS_ORIGIN` (default `http://localhost:5173`).
+The token is kept in `sessionStorage`, so it is forgotten when the tab closes.
 
+## Checks
+
+```bash
+npm test          # component tests with a mocked API
+npm run lint
+npm run typecheck
+npm run build
 ```
