@@ -1,0 +1,48 @@
+{
+  "model_tag": "lgbm-v1",
+  "file": "model.txt",
+  "format": "LightGBM text model",
+  "features": [
+    "days_ahead",
+    "weekday",
+    "same_weekday_1w",
+    "same_weekday_2w",
+    "weekday_avg_4w",
+    "last_day",
+    "mean_7",
+    "mean_14",
+    "std_28",
+    "zero_share_28"
+  ],
+  "target": "daily demand \u00f7 level (mean of the last 28 days); multiply predictions by the level",
+  "feature_code": "forecasting/cafestock_forecast/ml.py (origin_features, predict)",
+  "min_history_days": 28,
+  "trained_on": {
+    "snapshot": "demand_2025-03-23.csv",
+    "sha256": "7d8dc7b498ba901ba33297b8d50cd5ca3984f8d732ad037235d97a45f500bce3",
+    "rows": 19992,
+    "items": 8,
+    "date_from": "2024-03-01",
+    "date_to": "2025-03-23"
+  },
+  "backtest": {
+    "reference": 1.0,
+    "baseline": 0.8269303754399104,
+    "model": 0.8551129098213341
+  },
+  "params": {
+    "objective": "regression",
+    "learning_rate": 0.05,
+    "num_iterations": 200,
+    "num_leaves": 15,
+    "min_data_in_leaf": 40,
+    "feature_fraction": 0.9,
+    "lambda_l2": 1.0,
+    "seed": 2006,
+    "deterministic": true,
+    "force_row_wise": true,
+    "num_threads": 1,
+    "verbose": -1
+  },
+  "lightgbm": "4.7.0"
+}

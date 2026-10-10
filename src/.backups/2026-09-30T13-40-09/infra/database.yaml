@@ -1,0 +1,152 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  CafeStock - database. Amazon RDS for PostgreSQL 17 in the private subnets: not reachable from
+  the internet, encrypted at rest, TLS required for every connection. The master password is
+  generated into Secrets Manager the secret also holds the address,
+  so the app servers and the forecast Lambda read everything from one place.
+
+Parameters:
+  AppName:
+    Type: String
+    Default: cafestock
+    AllowedPattern: '^[a-z][a-z0-9-]{2,20}$'
+  NetworkStackName:
+    Type: String
+    Default: cafestock-network
+    Description: The network stack's name (its exports are used).
+  InstanceClass:
+    Type: String
+    Default: db.t3.micro
+    AllowedValues: [db.t3.micro, db.t3.small, db.t4g.micro, db.t4g.small]
+    Description: db.t3.micro is about $0.43/day. Stop the database when you're not using it.
+  EngineVersion:
+    Type: String
+    Default: '17.11'
+    AllowedPattern: '^17\.\d+$'
+    Description: >-
+      A PostgreSQL 17 version RDS offers (RDS console > Create database shows the list). Local
+      development uses PostgreSQL 17 too (docker-compose.yml).
+  MultiAZ:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: A standby copy in the second zone (doubles the cost). Off for the Learner Lab.
+  AlertsTopicArn:
+    Type: String
+    Default: ''
+    Description: The forecast stack's AlertsTopicArn output - database alarms e-mail the same people.
+
+Conditions:
+  HasAlerts: !Not [!Equals [!Ref AlertsTopicArn, '']]
+
+Resources:
+  DatabaseSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub '${AppName}/database'
+      Description: CafeStock database login (host, port and dbname are added once RDS exists)
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "cafestock_admin"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        ExcludeCharacters: '"@/\ '''
+
+  SubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: CafeStock private subnets
+      SubnetIds: !Split [',', !ImportValue { 'Fn::Sub': '${NetworkStackName}-PrivateSubnets' }]
+
+  ParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Family: postgres17
+      Description: CafeStock - TLS required
+      Parameters:
+        rds.force_ssl: '1' # refuse unencrypted connections
+        log_min_duration_statement: '1000' # log queries slower than 1 s
+
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot # deleting the stack keeps a final backup
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      DBInstanceIdentifier: !Sub '${AppName}-db'
+      Engine: postgres
+      EngineVersion: !Ref EngineVersion
+      DBInstanceClass: !Ref InstanceClass
+      AllocatedStorage: '20'
+      StorageType: gp2 # the Learner Lab allows gp2 only
+      StorageEncrypted: true
+      DBName: cafestock
+      MasterUsername: !Sub '{{resolve:secretsmanager:${DatabaseSecret}:SecretString:username}}'
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${DatabaseSecret}:SecretString:password}}'
+      DBSubnetGroupName: !Ref SubnetGroup
+      VPCSecurityGroups: [!ImportValue { 'Fn::Sub': '${NetworkStackName}-DatabaseSG' }]
+      DBParameterGroupName: !Ref ParameterGroup
+      PubliclyAccessible: false
+      MultiAZ: !Ref MultiAZ
+      CACertificateIdentifier: rds-ca-rsa2048-g1
+      BackupRetentionPeriod: 1
+      PreferredBackupWindow: '18:00-18:30' # 2:00 am Singapore
+      AutoMinorVersionUpgrade: true
+      EnablePerformanceInsights: false
+      MonitoringInterval: 0 # Enhanced Monitoring isn't allowed in the Learner Lab
+      EnableCloudwatchLogsExports: [postgresql]
+      CopyTagsToSnapshot: true
+      DeletionProtection: false
+      Tags: [{ Key: app, Value: !Ref AppName }]
+
+  # Adds host, port, dbname and engine to the secret
+  SecretAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref DatabaseSecret
+      TargetId: !Ref Database
+      TargetType: AWS::RDS::DBInstance
+
+  CpuAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasAlerts
+    Properties:
+      AlarmName: !Sub '${AppName}-db-cpu-high'
+      AlarmDescription: The CafeStock database has been above 80% CPU for 15 minutes.
+      Namespace: AWS/RDS
+      MetricName: CPUUtilization
+      Dimensions: [{ Name: DBInstanceIdentifier, Value: !Ref Database }]
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 3
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertsTopicArn]
+
+  StorageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasAlerts
+    Properties:
+      AlarmName: !Sub '${AppName}-db-storage-low'
+      AlarmDescription: The CafeStock database has less than 2 GB of free storage.
+      Namespace: AWS/RDS
+      MetricName: FreeStorageSpace
+      Dimensions: [{ Name: DBInstanceIdentifier, Value: !Ref Database }]
+      Statistic: Minimum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 2000000000
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertsTopicArn]
+
+Outputs:
+  DatabaseSecretArn:
+    Description: For the app stack and the forecast stack's DbSecretArn.
+    Value: !Ref DatabaseSecret
+    Export: { Name: !Sub '${AWS::StackName}-SecretArn' }
+  DatabaseEndpoint:
+    Value: !GetAtt Database.Endpoint.Address
+    Export: { Name: !Sub '${AWS::StackName}-Endpoint' }
+  DatabaseInstance:
+    Description: Stop/start it in the RDS console to save money between sessions.
+    Value: !Ref Database

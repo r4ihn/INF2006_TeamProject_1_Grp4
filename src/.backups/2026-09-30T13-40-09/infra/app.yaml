@@ -1,0 +1,486 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  CafeStock - the web app and API. Amazon API Gateway (HTTP API: the public https:// address,
+  throttling) -> VPC link -> a private Application Load Balancer with AWS WAF -> an Auto Scaling group of 1-2 EC2 app servers in two Availability Zones. Each new server downloads the release from S3 and sets
+  itself up (deploy/ec2/bootstrap.sh). Delete this stack between sessions to save money, the data is elsewhere.
+
+Parameters:
+  AppName:
+    Type: String
+    Default: cafestock
+    AllowedPattern: '^[a-z][a-z0-9-]{2,20}$'
+  NetworkStackName:
+    Type: String
+    Default: cafestock-network
+  DatabaseStackName:
+    Type: String
+    Default: cafestock-database
+  ArtifactsBucket:
+    Type: String
+    AllowedPattern: '^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$'
+    Description: The bucket from the cafestock-artifacts stack (same as for the forecast Lambda).
+  AppKey:
+    Type: String
+    AllowedPattern: '^app/cafestock-app-[0-9a-f]{12}\.tgz$'
+    ConstraintDescription: 'must look like app/cafestock-app-2c458cd421ac.tgz'
+    Description: The uploaded release, e.g. app/cafestock-app-2c458cd421ac.tgz (from npm run app:build).
+  CognitoUserPoolId:
+    Type: String
+    AllowedPattern: '^[a-z]{2}-[a-z]+-\d_[0-9a-zA-Z]+$'
+    Description: From the cafestock-cognito stack's outputs (Task 6), e.g. us-east-1_AbC123xyz.
+  CognitoClientId:
+    Type: String
+    AllowedPattern: '^[0-9a-z]{20,40}$'
+    Description: From the cafestock-cognito stack's outputs (ClientId).
+  PublicEntry:
+    Type: String
+    Default: api-gateway
+    AllowedValues: [api-gateway, load-balancer]
+    Description: >-
+      api-gateway = HTTPS address from API Gateway, load balancer kept private (recommended).
+      load-balancer = the load balancer is public and serves plain HTTP (use only if the
+      Learner Lab refuses API Gateway).
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues: [t3.micro, t3.small]
+  DesiredServers:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    MaxValue: 2
+    Description: Servers to start with. Auto Scaling adds one (up to MaxServers) when CPU is busy.
+  MaxServers:
+    Type: Number
+    Default: 2
+    MinValue: 1
+    MaxValue: 3
+  EnableWaf:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: AWS WAF on the load balancer (about $0.30/day). Set false if the Learner Lab refuses it.
+  ImportDemoData:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Load the café dataset (dates moved to recent weeks) the first time a server starts.
+  AlertsTopicArn:
+    Type: String
+    Default: ''
+    Description: The forecast stack's AlertsTopicArn output - app alarms e-mail the same people.
+  InstanceProfileName:
+    Type: String
+    Default: LabInstanceProfile
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label: { default: 'Release and sign-in' }
+        Parameters: [ArtifactsBucket, AppKey, CognitoUserPoolId, CognitoClientId]
+      - Label: { default: 'Servers' }
+        Parameters: [InstanceType, DesiredServers, MaxServers, ImportDemoData]
+      - Label: { default: 'Public address, protection and alerts' }
+        Parameters: [PublicEntry, EnableWaf, AlertsTopicArn]
+      - Label: { default: 'Other stacks and names (keep the defaults)' }
+        Parameters: [AppName, NetworkStackName, DatabaseStackName, InstanceProfileName, LatestAmiId]
+
+Conditions:
+  ViaApiGateway: !Equals [!Ref PublicEntry, api-gateway]
+  PublicLoadBalancer: !Not [!Condition ViaApiGateway]
+  UseWaf: !Equals [!Ref EnableWaf, 'true']
+  HasAlerts: !Not [!Equals [!Ref AlertsTopicArn, '']]
+
+Resources:
+  AppLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/${AppName}/app'
+      RetentionInDays: 14
+
+  # ── Load balancer: private behind API Gateway (or public, plain HTTP, as a fallback) ──
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub '${AppName}-alb'
+      Scheme: !If [ViaApiGateway, internal, internet-facing]
+      Type: application
+      Subnets: !Split
+        - ','
+        - !If
+          - ViaApiGateway
+          - !ImportValue { 'Fn::Sub': '${NetworkStackName}-PrivateSubnets' }
+          - !ImportValue { 'Fn::Sub': '${NetworkStackName}-PublicSubnets' }
+      SecurityGroups: [!ImportValue { 'Fn::Sub': '${NetworkStackName}-LoadBalancerSG' }]
+      LoadBalancerAttributes:
+        - { Key: routing.http.drop_invalid_header_fields.enabled, Value: 'true' }
+        - { Key: idle_timeout.timeout_seconds, Value: '60' }
+
+  # Who may reach the load balancer on port 80: API Gateway's VPC link only (or anyone, as a fallback)
+  LoadBalancerFromApiGateway:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: ViaApiGateway
+    Properties:
+      GroupId: !ImportValue { 'Fn::Sub': '${NetworkStackName}-LoadBalancerSG' }
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      SourceSecurityGroupId: !Ref VpcLinkSecurityGroup
+      Description: API Gateway VPC link
+  LoadBalancerFromInternet:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: PublicLoadBalancer
+    Properties:
+      GroupId: !ImportValue { 'Fn::Sub': '${NetworkStackName}-LoadBalancerSG' }
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+      Description: Anyone (PublicEntry=load-balancer)
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub '${AppName}-app'
+      VpcId: !ImportValue { 'Fn::Sub': '${NetworkStackName}-VpcId' }
+      Protocol: HTTP
+      Port: 3000
+      TargetType: instance
+      HealthCheckPath: /health # liveness only: a database blip doesn't take every server out
+      HealthCheckIntervalSeconds: 15
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      Matcher: { HttpCode: '200' }
+      TargetGroupAttributes:
+        - { Key: deregistration_delay.timeout_seconds, Value: '30' }
+
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Protocol: HTTP
+      Port: 80
+      DefaultActions: !If
+        - ViaApiGateway
+        - - Type: fixed-response
+            FixedResponseConfig:
+              StatusCode: '403'
+              ContentType: text/plain
+              MessageBody: CafeStock is only served through its API Gateway address (https).
+        - - Type: forward
+            TargetGroupArn: !Ref TargetGroup
+
+  # Only requests that came through API Gateway carry this header (defence in depth)
+  FromApiGatewayRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Condition: ViaApiGateway
+    Properties:
+      ListenerArn: !Ref Listener
+      Priority: 1
+      Conditions:
+        - Field: http-header
+          HttpHeaderConfig:
+            HttpHeaderName: X-CafeStock-Origin
+            # A value only this stack knows: part of its unique id
+            Values: [!Select [2, !Split ['/', !Ref AWS::StackId]]]
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  # ── API Gateway: the public HTTPS address ──
+  VpcLinkSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: ViaApiGateway
+    Properties:
+      GroupDescription: API Gateway VPC link - talks to the private load balancer
+      VpcId: !ImportValue { 'Fn::Sub': '${NetworkStackName}-VpcId' }
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-vpc-link' }]
+
+  VpcLink:
+    Type: AWS::ApiGatewayV2::VpcLink
+    Condition: ViaApiGateway
+    Properties:
+      Name: !Sub '${AppName}-vpc-link'
+      SubnetIds: !Split [',', !ImportValue { 'Fn::Sub': '${NetworkStackName}-PrivateSubnets' }]
+      SecurityGroupIds: [!Ref VpcLinkSecurityGroup]
+
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Condition: ViaApiGateway
+    Properties:
+      Name: !Sub '${AppName}-web'
+      ProtocolType: HTTP
+      Description: CafeStock web app and API (HTTPS) → private load balancer
+
+  HttpApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: ViaApiGateway
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: HTTP_PROXY
+      IntegrationMethod: ANY
+      ConnectionType: VPC_LINK
+      ConnectionId: !Ref VpcLink
+      IntegrationUri: !Ref Listener
+      PayloadFormatVersion: '1.0'
+      TimeoutInMillis: 30000
+      RequestParameters:
+        'overwrite:header.X-CafeStock-Origin': !Select [2, !Split ['/', !Ref AWS::StackId]]
+
+  HttpApiRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: ViaApiGateway
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: $default # every path and method: pages, files and the API
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  HttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Condition: ViaApiGateway
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: $default
+      AutoDeploy: true
+      DefaultRouteSettings: # throttling: protects the servers from floods
+        ThrottlingRateLimit: 50
+        ThrottlingBurstLimit: 100
+
+  # ── App servers ──
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub '${AppName}-app'
+      LaunchTemplateData:
+        ImageId: !Ref LatestAmiId
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile: { Name: !Ref InstanceProfileName }
+        SecurityGroupIds: [!ImportValue { 'Fn::Sub': '${NetworkStackName}-AppSG' }]
+        MetadataOptions:
+          HttpTokens: required # IMDSv2 only
+          HttpEndpoint: enabled
+        TagSpecifications:
+          - ResourceType: instance
+            Tags: [{ Key: Name, Value: !Sub '${AppName}-app' }, { Key: app, Value: !Ref AppName }]
+        UserData:
+          Fn::Base64: !Sub
+            - |
+              #!/bin/bash
+              # Downloads the CafeStock release and runs its set-up script; then tells
+              # CloudFormation whether it worked (so a failed server shows up as a failed stack).
+              set -Eeuo pipefail
+              mkdir -p /var/log/cafestock
+              exec > >(tee -a /var/log/cafestock/bootstrap.log) 2>&1
+              signal() {
+                /opt/aws/bin/cfn-signal -e "$1" --reason "$2" --stack '${AWS::StackName}' \
+                  --resource AppServers --region '${AWS::Region}' || true
+              }
+              trap 'signal 1 "Set-up failed - see CloudWatch log group ${AppLogGroup}, stream <instance id>/bootstrap"' ERR
+              dnf install -y -q aws-cfn-bootstrap
+              aws s3 cp 's3://${ArtifactsBucket}/${AppKey}' /tmp/cafestock-app.tgz --region '${AWS::Region}' --only-show-errors
+              mkdir -p /opt/cafestock
+              tar -xzf /tmp/cafestock-app.tgz -C /opt/cafestock --strip-components=1
+              export AWS_REGION='${AWS::Region}' DB_SECRET_ARN='${SecretArn}' LOG_GROUP='${AppLogGroup}' \
+                COGNITO_USER_POOL_ID='${CognitoUserPoolId}' COGNITO_CLIENT_ID='${CognitoClientId}' \
+                IMPORT_DEMO_DATA='${ImportDemoData}'
+              bash /opt/cafestock/deploy/ec2/bootstrap.sh
+              signal 0 "CafeStock is running"
+            - SecretArn: !ImportValue { 'Fn::Sub': '${DatabaseStackName}-SecretArn' }
+
+  AppServers:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    CreationPolicy:
+      ResourceSignal:
+        Count: !Ref DesiredServers
+        Timeout: PT25M
+    UpdatePolicy:
+      AutoScalingRollingUpdate: # a new release: start a new server, then retire the old one
+        MinInstancesInService: 1
+        MaxBatchSize: 1
+        WaitOnResourceSignals: true
+        PauseTime: PT25M
+    Properties:
+      AutoScalingGroupName: !Sub '${AppName}-app'
+      VPCZoneIdentifier:
+        !Split [',', !ImportValue { 'Fn::Sub': '${NetworkStackName}-PublicSubnets' }]
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      MinSize: '1'
+      MaxSize: !Ref MaxServers
+      DesiredCapacity: !Ref DesiredServers
+      TargetGroupARNs: [!Ref TargetGroup]
+      HealthCheckType: ELB # replace a server the load balancer says is unhealthy
+      HealthCheckGracePeriod: 900 # set-up takes a few minutes
+      MetricsCollection: [{ Granularity: 1Minute }]
+      Tags:
+        - { Key: app, Value: !Ref AppName, PropagateAtLaunch: true }
+
+  CpuScaling:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref AppServers
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification: { PredefinedMetricType: ASGAverageCPUUtilization }
+        TargetValue: 60
+
+  # ── Firewall (AWS WAF) on the load balancer ──
+  WebAcl:
+    Type: AWS::WAFv2::WebACL
+    Condition: UseWaf
+    Properties:
+      Name: !Sub '${AppName}-web'
+      Scope: REGIONAL
+      DefaultAction: { Allow: {} }
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub '${AppName}-web'
+      Rules:
+        - Name: common-attacks
+          Priority: 0
+          OverrideAction: { None: {} }
+          Statement:
+            ManagedRuleGroupStatement: { VendorName: AWS, Name: AWSManagedRulesCommonRuleSet }
+          VisibilityConfig:
+            {
+              SampledRequestsEnabled: true,
+              CloudWatchMetricsEnabled: true,
+              MetricName: common-attacks,
+            }
+        - Name: known-bad-inputs
+          Priority: 1
+          OverrideAction: { None: {} }
+          Statement:
+            ManagedRuleGroupStatement:
+              { VendorName: AWS, Name: AWSManagedRulesKnownBadInputsRuleSet }
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: known-bad-inputs
+        # Per-visitor rules need the visitor's own IP address, which only a public load
+        # balancer sees (behind API Gateway, the stage's throttling does this job)
+        - !If
+          - PublicLoadBalancer
+          - Name: rate-limit
+            Priority: 2
+            Action: { Block: {} }
+            Statement:
+              RateBasedStatement:
+                Limit: 600 # requests per 5 minutes from one IP address
+                AggregateKeyType: IP
+            VisibilityConfig:
+              {
+                SampledRequestsEnabled: true,
+                CloudWatchMetricsEnabled: true,
+                MetricName: rate-limit,
+              }
+          - !Ref AWS::NoValue
+        - !If
+          - PublicLoadBalancer
+          - Name: ip-reputation
+            Priority: 3
+            OverrideAction: { None: {} }
+            Statement:
+              ManagedRuleGroupStatement:
+                { VendorName: AWS, Name: AWSManagedRulesAmazonIpReputationList }
+            VisibilityConfig:
+              SampledRequestsEnabled: true
+              CloudWatchMetricsEnabled: true
+              MetricName: ip-reputation
+          - !Ref AWS::NoValue
+
+  WebAclAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Condition: UseWaf
+    Properties:
+      ResourceArn: !Ref LoadBalancer
+      WebACLArn: !GetAtt WebAcl.Arn
+
+  # ── Alarms (e-mail through the forecast stack's topic) ──
+  UnhealthyServerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasAlerts
+    Properties:
+      AlarmName: !Sub '${AppName}-app-unhealthy'
+      AlarmDescription: An app server has failed its health check for 3 minutes (Auto Scaling will replace it).
+      Namespace: AWS/ApplicationELB
+      MetricName: UnHealthyHostCount
+      Dimensions:
+        - { Name: LoadBalancer, Value: !GetAtt LoadBalancer.LoadBalancerFullName }
+        - { Name: TargetGroup, Value: !GetAtt TargetGroup.TargetGroupFullName }
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 3
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertsTopicArn]
+      OKActions: [!Ref AlertsTopicArn]
+
+  ServerErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasAlerts
+    Properties:
+      AlarmName: !Sub '${AppName}-app-5xx'
+      AlarmDescription: The API returned 10 or more server errors (5xx) in 5 minutes.
+      Namespace: AWS/ApplicationELB
+      MetricName: HTTPCode_Target_5XX_Count
+      Dimensions:
+        - { Name: LoadBalancer, Value: !GetAtt LoadBalancer.LoadBalancerFullName }
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertsTopicArn]
+
+  Dashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub '${AppName}-app'
+      DashboardBody: !Sub
+        - |
+          {
+            "widgets": [
+              {"type": "metric", "x": 0, "y": 0, "width": 12, "height": 6, "properties": {
+                "title": "Requests reaching the app", "region": "${AWS::Region}", "stat": "Sum", "period": 300,
+                "metrics": [["AWS/ApplicationELB", "RequestCount", "LoadBalancer", "${AlbName}"]]}},
+              {"type": "metric", "x": 12, "y": 0, "width": 12, "height": 6, "properties": {
+                "title": "API response time (p95, seconds)", "region": "${AWS::Region}", "stat": "p95", "period": 300,
+                "metrics": [["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", "${AlbName}"]]}},
+              {"type": "metric", "x": 0, "y": 6, "width": 12, "height": 6, "properties": {
+                "title": "App servers in service", "region": "${AWS::Region}", "stat": "Average", "period": 60,
+                "metrics": [["AWS/AutoScaling", "GroupInServiceInstances", "AutoScalingGroupName", "${AppServers}"],
+                            ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", "${AppServers}", {"yAxis": "right", "label": "CPU %"}]]}},
+              {"type": "metric", "x": 12, "y": 6, "width": 12, "height": 6, "properties": {
+                "title": "Server errors and blocked requests", "region": "${AWS::Region}", "stat": "Sum", "period": 300,
+                "metrics": [["AWS/ApplicationELB", "HTTPCode_Target_5XX_Count", "LoadBalancer", "${AlbName}", {"label": "API 5xx"}],
+                            ["AWS/WAFV2", "BlockedRequests", "WebACL", "${AppName}-web", "Region", "${AWS::Region}", "Rule", "ALL", {"label": "Blocked by WAF"}]]}}
+            ]
+          }
+        - AlbName: !GetAtt LoadBalancer.LoadBalancerFullName
+
+Outputs:
+  AppUrl:
+    Description: Open this - the app.
+    Value: !If
+      - ViaApiGateway
+      - !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+      - !Sub 'http://${LoadBalancer.DNSName}'
+  LoadBalancerAddress:
+    Description: >-
+      The load balancer's own address. Behind API Gateway it is internal: it doesn't resolve to
+      anything reachable from the internet.
+    Value: !GetAtt LoadBalancer.DNSName
+  AutoScalingGroup:
+    Value: !Ref AppServers
+  LogGroup:
+    Value: !Ref AppLogGroup
+  DashboardUrl:
+    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards/dashboard/${AppName}-app'

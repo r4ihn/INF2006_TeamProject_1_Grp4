@@ -1,0 +1,281 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  CafeStock - nightly demand forecast. An EventBridge rule runs a Python Lambda every night, it
+  scores LightGBM against the 14-day average for each cafe, keeps the better one and saves the
+  forecast for the manager's Forecast page. Failures e-mail the team (SNS).
+
+Parameters:
+  AppName:
+    Type: String
+    Default: cafestock
+    AllowedPattern: '^[a-z][a-z0-9-]{2,20}$'
+    Description: Short lower-case name used to label the resources.
+  ArtifactsBucket:
+    Type: String
+    AllowedPattern: '^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$'
+    Description: The bucket from the cafestock-artifacts stack (its BucketName output).
+  CodeKey:
+    Type: String
+    AllowedPattern: '^lambda/forecast-lambda-[0-9a-f]{12}\.zip$'
+    ConstraintDescription: 'must look like lambda/forecast-lambda-5420217be533.zip'
+    Description: The uploaded package, e.g. lambda/forecast-lambda-5420217be533.zip (from npm run lambda:build).
+  ModelKey:
+    Type: String
+    Default: models/lgbm-v1/model.txt
+    Description: The LightGBM model in the bucket (model.json is read from the same folder).
+  AlertEmail:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|^[^@\s]+@[^@\s]+\.[^@\s]+$'
+    Description: Who is e-mailed when a run fails (confirm the e-mail AWS sends). Leave empty for none.
+  ScheduleExpression:
+    Type: String
+    Default: cron(0 18 * * ? *)
+    Description: When to run, in UTC. The default, 18:00 UTC, is 2:00 am in Singapore.
+  Cafes:
+    Type: String
+    Default: all
+    Description: '"all" (every cafe with active items) or a comma-separated list of cafe slugs.'
+  UrgentAlertCafe:
+    Type: String
+    Default: demo-cafe
+    Description: E-mail when this cafe has urgent items after a run (needs the database). Empty for none.
+  LabRoleName:
+    Type: String
+    Default: LabRole
+    Description: The Learner Lab's pre-made role the function runs as.
+  # ── Database (Task 11). Leave empty until the RDS database exists. ──
+  DbSecretArn:
+    Type: String
+    Default: ''
+    Description: Secrets Manager secret with the database username and password (RDS creates it).
+  DbHost:
+    Type: String
+    Default: ''
+    Description: The RDS endpoint, e.g. cafestock-db.abc123.us-east-1.rds.amazonaws.com
+  DbPort:
+    Type: Number
+    Default: 5432
+  DbName:
+    Type: String
+    Default: cafestock
+  SubnetIds:
+    Type: CommaDelimitedList
+    Default: ''
+    Description: Private subnets the function runs in, so it can reach the database.
+  SecurityGroupIds:
+    Type: CommaDelimitedList
+    Default: ''
+    Description: Security group allowed to connect to the database.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label: { default: 'Package and model (Task 10)' }
+        Parameters: [ArtifactsBucket, CodeKey, ModelKey]
+      - Label: { default: 'Alerts and schedule' }
+        Parameters: [AlertEmail, UrgentAlertCafe, ScheduleExpression, Cafes]
+      - Label: { default: 'Database (Task 11 - leave empty for now)' }
+        Parameters: [DbSecretArn, DbHost, DbPort, DbName, SubnetIds, SecurityGroupIds]
+      - Label: { default: 'Other' }
+        Parameters: [AppName, LabRoleName]
+
+Conditions:
+  HasDatabase: !Not [!Equals [!Ref DbSecretArn, '']]
+  InVpc: !Not [!Equals [!Join ['', !Ref SubnetIds], '']]
+  HasEmail: !Not [!Equals [!Ref AlertEmail, '']]
+  WatchUrgent: !And [!Condition HasDatabase, !Not [!Equals [!Ref UrgentAlertCafe, '']]]
+
+Resources:
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AppName}-forecast'
+      RetentionInDays: 14 # keeps storage (and cost) small
+
+  ForecastFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AppName}-forecast'
+      Description: Nightly demand forecast and reorder recommendations (CafeStock Task 10)
+      Runtime: python3.13
+      Architectures: [x86_64]
+      Handler: cafestock_forecast.aws_lambda.handler
+      Code:
+        S3Bucket: !Ref ArtifactsBucket
+        S3Key: !Ref CodeKey
+      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}'
+      MemorySize: 1024 # LightGBM retrains 8 times to score the model; more memory = more CPU
+      Timeout: 300
+      LoggingConfig:
+        LogGroup: !Ref LogGroup
+        LogFormat: Text
+      Environment:
+        Variables:
+          MODEL_S3_URI: !Sub 's3://${ArtifactsBucket}/${ModelKey}'
+          CAFES: !Ref Cafes
+          EVAL_WEEKS: '8'
+          MIN_MINUTES_BETWEEN_RUNS: '60'
+          METRICS_NAMESPACE: CafeStock/Forecast
+          DB_SECRET_ARN: !Ref DbSecretArn
+          DB_HOST: !Ref DbHost
+          DB_PORT: !Ref DbPort
+          DB_NAME: !Ref DbName
+          DB_SSL: !If [HasDatabase, verify-full, 'off']
+      VpcConfig: !If
+        - InVpc
+        - SubnetIds: !Ref SubnetIds
+          SecurityGroupIds: !Ref SecurityGroupIds
+        - !Ref AWS::NoValue
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+
+  # Nightly runs are asynchronous: retry once, then tell the team (SNS) if it still failed
+  ForecastInvokeConfig:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName: !Ref ForecastFunction
+      Qualifier: $LATEST
+      MaximumRetryAttempts: 1
+      MaximumEventAgeInSeconds: 3600
+      DestinationConfig:
+        OnFailure:
+          Destination: !Ref AlertsTopic
+
+  NightlyRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub '${AppName}-forecast-nightly'
+      Description: Runs the CafeStock forecast every night
+      ScheduleExpression: !Ref ScheduleExpression
+      # Off until there is a database to forecast from (Task 11)
+      State: !If [HasDatabase, ENABLED, DISABLED]
+      Targets:
+        - Id: forecast
+          Arn: !GetAtt ForecastFunction.Arn
+          RetryPolicy:
+            MaximumRetryAttempts: 2
+            MaximumEventAgeInSeconds: 3600
+
+  NightlyRulePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ForecastFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt NightlyRule.Arn
+
+  AlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${AppName}-forecast-alerts'
+      DisplayName: CafeStock forecast
+
+  AlertsEmail:
+    Type: AWS::SNS::Subscription
+    Condition: HasEmail
+    Properties:
+      TopicArn: !Ref AlertsTopic
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+
+  # Any failed run (including the {"fail": true} test) → e-mail within about 5 minutes
+  ErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${AppName}-forecast-failed'
+      AlarmDescription: The CafeStock forecast Lambda failed. Check its log group for the cafe and the reason.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ForecastFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertsTopic]
+      OKActions: [!Ref AlertsTopic]
+
+  # No cafe published for a whole day → the schedule or the function is broken
+  MissedRunAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasDatabase
+    Properties:
+      AlarmName: !Sub '${AppName}-forecast-missed'
+      AlarmDescription: No CafeStock forecast was published in the last 24 hours.
+      Namespace: CafeStock/Forecast
+      MetricName: CafesPublished
+      Statistic: Sum
+      Period: 86400
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: breaching
+      AlarmActions: [!Ref AlertsTopic]
+
+  # Business alert: the café will run out of something before a delivery could arrive
+  UrgentItemsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: WatchUrgent
+    Properties:
+      AlarmName: !Sub '${AppName}-${UrgentAlertCafe}-urgent-items'
+      AlarmDescription: !Sub "Last night's forecast found URGENT items for ${UrgentAlertCafe}. Open CafeStock > Forecast."
+      Namespace: CafeStock/Forecast
+      MetricName: UrgentItems
+      Dimensions:
+        - Name: Cafe
+          Value: !Ref UrgentAlertCafe
+      Statistic: Maximum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertsTopic]
+
+  Dashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub '${AppName}-forecast'
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {"type": "metric", "x": 0, "y": 0, "width": 12, "height": 6, "properties": {
+              "title": "Runs: invocations and errors", "region": "${AWS::Region}", "stat": "Sum", "period": 86400,
+              "metrics": [["AWS/Lambda", "Invocations", "FunctionName", "${ForecastFunction}"],
+                          ["AWS/Lambda", "Errors", "FunctionName", "${ForecastFunction}"]]}},
+            {"type": "metric", "x": 12, "y": 0, "width": 12, "height": 6, "properties": {
+              "title": "Run time (seconds)", "region": "${AWS::Region}", "stat": "Maximum", "period": 86400,
+              "metrics": [["CafeStock/Forecast", "DurationSeconds"]]}},
+            {"type": "metric", "x": 0, "y": 6, "width": 12, "height": 6, "properties": {
+              "title": "Items to order (${UrgentAlertCafe})", "region": "${AWS::Region}", "stat": "Maximum", "period": 86400,
+              "metrics": [["CafeStock/Forecast", "ItemsToOrder", "Cafe", "${UrgentAlertCafe}"],
+                          ["CafeStock/Forecast", "UrgentItems", "Cafe", "${UrgentAlertCafe}"]]}},
+            {"type": "metric", "x": 12, "y": 6, "width": 12, "height": 6, "properties": {
+              "title": "Forecast error, MASE (lower is better)", "region": "${AWS::Region}", "stat": "Average", "period": 86400,
+              "metrics": [["CafeStock/Forecast", "ModelMASE", "Cafe", "${UrgentAlertCafe}", {"label": "LightGBM"}],
+                          ["CafeStock/Forecast", "BaselineMASE", "Cafe", "${UrgentAlertCafe}", {"label": "14-day average"}]]}}
+          ]
+        }
+
+Outputs:
+  FunctionName:
+    Description: Open it in the Lambda console to run a test event.
+    Value: !Ref ForecastFunction
+  LogGroup:
+    Value: !Ref LogGroup
+  AlertsTopicArn:
+    Value: !Ref AlertsTopic
+  NightlySchedule:
+    Value:
+      !If [
+        HasDatabase,
+        !Sub 'ON - ${ScheduleExpression} (UTC)',
+        'OFF until the database parameters are set (Task 11)',
+      ]
+  DashboardUrl:
+    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards/dashboard/${AppName}-forecast'

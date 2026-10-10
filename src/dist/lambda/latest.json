@@ -1,0 +1,20 @@
+{
+  "file": "forecast-lambda-c301d8950f32.zip",
+  "sha256": "c301d8950f321b43bd4f0fb378b4960a36f86b896ef5a4ad070245195b8cab9f",
+  "bytes": 49778439,
+  "unzippedBytes": 161440641,
+  "files": 1461,
+  "python": "3.13",
+  "packages": [
+    "pg8000==1.31.5",
+    "scramp==1.4.17",
+    "asn1crypto==1.5.1",
+    "python-dateutil==2.9.0.post0",
+    "six==1.17.0",
+    "lightgbm==4.7.0",
+    "numpy==2.4.6",
+    "scipy==1.17.1",
+    "narwhals==2.26.0"
+  ],
+  "rdsBundle": true
+}
