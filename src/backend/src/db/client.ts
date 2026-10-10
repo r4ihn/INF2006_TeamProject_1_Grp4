@@ -1,4 +1,4 @@
-import { PrismaPg } from '../../../node_modules/@prisma/adapter-pg/dist/index.js';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client.js';
 
 // Prisma 7 talks to Postgres through the `pg` driver via this adapter.

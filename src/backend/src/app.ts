@@ -1,7 +1,7 @@
 import path from 'node:path';
 import express, { type Express } from 'express';
 import cors from 'cors';
-import helmet from '../../node_modules/helmet/index.cjs';
+import helmet from 'helmet';
 import type { AppConfig } from './config.js';
 import type { PrismaClient } from './db/client.js';
 import { requireAuth, tokenAuthenticator, type Authenticator } from './auth/authenticate.js';

@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import pg from '../../../node_modules/@types/pg/index.js';
+import pg from 'pg';
 import { testDatabaseUrl } from './test-db.js';
 
 export default async function setup() {
