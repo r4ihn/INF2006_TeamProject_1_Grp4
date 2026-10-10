@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "vitest.explorer",
+    "prisma.prisma",
+    "editorconfig.editorconfig",
+    "ms-python.python",
+    "ms-toolsai.jupyter"
+  ]
+}

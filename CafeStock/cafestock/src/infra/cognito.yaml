@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  CafeStock - Amazon Cognito sign-in for staff and managers. Creates a user pool (Lite plan,
+  free for up to 10,000 monthly active users), "staff" and "manager" groups, and the web
+  app's client.
+
+Parameters:
+  AppName:
+    Type: String
+    Default: cafestock
+    AllowedPattern: '^[a-z][a-z0-9-]{2,30}$'
+    Description: Short lower-case name used to label the resources.
+
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${AppName}-users'
+      # Lite: password sign-in only, which is all CafeStock uses - and the cheapest plan.
+      UserPoolTier: LITE
+      # People sign in with their email address.
+      UsernameAttributes: [email]
+      UsernameConfiguration:
+        CaseSensitive: false
+      AutoVerifiedAttributes: [email]
+      # Only the café owner/admin creates accounts - no public sign-up page.
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+        InviteMessageTemplate:
+          EmailSubject: Your CafeStock account
+          EmailMessage: >-
+            You've been invited to CafeStock. Sign in with {username} and the temporary
+            password {####} - you'll be asked to choose your own password.
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 10
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireUppercase: false
+          RequireSymbols: false
+          TemporaryPasswordValidityDays: 7
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      # Cognito's built-in email: free, about 50 emails/day - enough for a demo.
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      MfaConfiguration: 'OFF'
+      DeletionProtection: INACTIVE
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+        - Name: name
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+        # custom:org - the slug of the café this person works at (e.g. demo-cafe).
+        # Leave it empty to use the default café. This is the multi-tenant hook.
+        - Name: org
+          AttributeDataType: String
+          Mutable: true
+          StringAttributeConstraints:
+            MinLength: '1'
+            MaxLength: '64'
+
+  ManagerGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      UserPoolId: !Ref UserPool
+      GroupName: manager
+      Description: Owners and managers - inventory plus the forecast and reorder recommendations.
+      Precedence: 10
+
+  StaffGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      UserPoolId: !Ref UserPool
+      GroupName: staff
+      Description: Café staff - suppliers, items and stock (no forecast).
+      Precedence: 20
+
+  WebClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Sub '${AppName}-web'
+      # A browser app can't keep a secret, so the client has none (public client).
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      # Don't reveal whether an email address has an account.
+      PreventUserExistenceErrors: ENABLED
+      EnableTokenRevocation: true
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      RefreshTokenValidity: 12
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: hours
+      ReadAttributes: [email, email_verified, name, custom:org]
+      # Users may change their display name; only an admin can change their café.
+      WriteAttributes: [email, name]
+
+Outputs:
+  Region:
+    Description: AWS region of the user pool
+    Value: !Ref AWS::Region
+  UserPoolId:
+    Description: Put this in backend/.env as COGNITO_USER_POOL_ID
+    Value: !Ref UserPool
+  ClientId:
+    Description: Put this in backend/.env as COGNITO_CLIENT_ID
+    Value: !Ref WebClient
+  EnvFileLines:
+    Description: Copy both lines into backend/.env
+    Value: !Sub 'COGNITO_USER_POOL_ID=${UserPool}  COGNITO_CLIENT_ID=${WebClient}'

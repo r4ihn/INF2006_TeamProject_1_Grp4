@@ -1,0 +1,222 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  CafeStock - network. A VPC across two Availability Zones: public subnets for the load
+  balancer and app servers, private subnets (no internet route) for the database and the
+  forecast Lambda. Security groups let each tier talk only to the next one.
+
+Parameters:
+  AppName:
+    Type: String
+    Default: cafestock
+    AllowedPattern: '^[a-z][a-z0-9-]{2,20}$'
+  CloudFrontPrefixListId:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|^pl-[0-9a-f]{8,17}$'
+    ConstraintDescription: 'must look like pl-3b927c52, or be empty'
+    Description: >-
+      VPC console > Managed prefix lists > com.amazonaws.global.cloudfront.origin-facing > its ID.
+      The load balancer then accepts traffic only from CloudFront. Empty = from anywhere (the
+      secret header still blocks direct visits).
+
+Conditions:
+  OnlyCloudFront: !Not [!Equals [!Ref CloudFrontPrefixListId, '']]
+
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.20.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true # needed for the Secrets Manager endpoint's private DNS name
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-vpc' }]
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-igw' }]
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+
+  # ── Public subnets: load balancer + app servers ──
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: 10.20.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-public-a' }]
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: 10.20.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-public-b' }]
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-public' }]
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicSubnetARoutes:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: { SubnetId: !Ref PublicSubnetA, RouteTableId: !Ref PublicRouteTable }
+  PublicSubnetBRoutes:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: { SubnetId: !Ref PublicSubnetB, RouteTableId: !Ref PublicRouteTable }
+
+  # ── Private subnets: database + forecast Lambda (no route to the internet) ──
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: 10.20.10.0/24
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-private-a' }]
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: 10.20.11.0/24
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-private-b' }]
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-private' }]
+  PrivateSubnetARoutes:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: { SubnetId: !Ref PrivateSubnetA, RouteTableId: !Ref PrivateRouteTable }
+  PrivateSubnetBRoutes:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: { SubnetId: !Ref PrivateSubnetB, RouteTableId: !Ref PrivateRouteTable }
+
+  # The Lambda downloads the model from S3 through this (free)
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref Vpc
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcEndpointType: Gateway
+      RouteTableIds: [!Ref PrivateRouteTable]
+
+  # The Lambda reads the database password through this. One subnet keeps it to ~$0.24/day.
+  SecretsManagerEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref Vpc
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.secretsmanager'
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SubnetIds: [!Ref PrivateSubnetA]
+      SecurityGroupIds: [!Ref EndpointSecurityGroup]
+
+  # ── Security groups: each tier accepts traffic only from the one in front of it ──
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Load balancer - HTTP from CloudFront only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - !If
+          - OnlyCloudFront
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            SourcePrefixListId: !Ref CloudFrontPrefixListId
+            Description: CloudFront edge servers
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+            Description: Anywhere (the listener still requires CloudFronts secret header)
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-alb' }]
+
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: App servers - port 3000 from the load balancer only; no SSH
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+          Description: Load balancer
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-app' }]
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Forecast Lambda - no inbound traffic
+      VpcId: !Ref Vpc
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-lambda' }]
+
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Database - PostgreSQL from the app servers and the forecast Lambda only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref AppSecurityGroup
+          Description: App servers
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+          Description: Forecast Lambda
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-db' }]
+
+  EndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Secrets Manager endpoint - HTTPS from inside the VPC
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.20.0.0/16
+          Description: This VPC
+      Tags: [{ Key: Name, Value: !Sub '${AppName}-endpoints' }]
+
+Outputs:
+  VpcId:
+    Value: !Ref Vpc
+    Export: { Name: !Sub '${AWS::StackName}-VpcId' }
+  PublicSubnets:
+    Value: !Join [',', [!Ref PublicSubnetA, !Ref PublicSubnetB]]
+    Export: { Name: !Sub '${AWS::StackName}-PublicSubnets' }
+  PrivateSubnets:
+    Description: For the forecast stack's SubnetIds.
+    Value: !Join [',', [!Ref PrivateSubnetA, !Ref PrivateSubnetB]]
+    Export: { Name: !Sub '${AWS::StackName}-PrivateSubnets' }
+  LoadBalancerSecurityGroup:
+    Value: !Ref LoadBalancerSecurityGroup
+    Export: { Name: !Sub '${AWS::StackName}-LoadBalancerSG' }
+  AppSecurityGroup:
+    Value: !Ref AppSecurityGroup
+    Export: { Name: !Sub '${AWS::StackName}-AppSG' }
+  LambdaSecurityGroup:
+    Description: For the forecast stack's SecurityGroupIds.
+    Value: !Ref LambdaSecurityGroup
+    Export: { Name: !Sub '${AWS::StackName}-LambdaSG' }
+  DatabaseSecurityGroup:
+    Value: !Ref DatabaseSecurityGroup
+    Export: { Name: !Sub '${AWS::StackName}-DatabaseSG' }

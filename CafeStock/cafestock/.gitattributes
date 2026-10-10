@@ -1,0 +1,5 @@
+# Keep LF line endings on Windows checkouts so Prettier's check stays green
+* text=auto eol=lf
+
+# The dataset is kept byte-for-byte as the analytics scripts wrote it (checksums are recorded)
+data/** -text

@@ -1,0 +1,168 @@
+$ npm run check
+# 2026-10-01T02:00:44.254Z
+
+
+> cafestock@0.1.0 check
+> npm run format:check && npm run lint && npm run typecheck && npm run test
+
+
+> cafestock@0.1.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> cafestock@0.1.0 lint
+> eslint .
+
+
+> cafestock@0.1.0 typecheck
+> npm run typecheck -w backend && npm run typecheck -w frontend
+
+
+> backend@0.1.0 typecheck
+> tsc --noEmit
+
+
+> frontend@0.1.0 typecheck
+> tsc --noEmit
+
+
+> cafestock@0.1.0 test
+> npm run test -w backend && npm run test -w frontend
+
+
+> backend@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.1 C:/Users/jason/Downloads/Y2T1/Cloud Computing/Project/cafestock/cafestock/backend
+
+ ✓ |unit| tests/unit/db-errors.test.ts (4 tests) 6ms
+ ✓ |unit| tests/unit/import-csv.test.ts (8 tests) 12ms
+ ✓ |unit| tests/unit/coffee-dataset.test.ts (22 tests) 34ms
+ ✓ |unit| tests/unit/auth-config.test.ts (13 tests) 43ms
+ ✓ |unit| tests/unit/error-handler.test.ts (3 tests) 45ms
+ ✓ |unit| tests/unit/web-app.test.ts (6 tests) 142ms
+ ✓ |unit| tests/unit/health.test.ts (13 tests) 263ms
+ ✓ |db| tests/db/dataset-import.test.ts (22 tests) 9207ms
+   ✓ importing the team dataset (data/) (1)
+     ✓ loads 8 items, 388 days of demand each, and the full ledger 3741ms
+   ✓ importDataset (14)
+     ✓ creates items with the dataset’s values and a supplier per lead time 370ms
+   ✓ npm run db:import (the command) (3)
+     ✓ imports and prints the provenance and a per-item summary 583ms
+     ✓ --if-empty imports once, then does nothing (a new server on AWS) 603ms
+   ✓ history API (4)
+     ✓ GET /api/stock/history summarises each item’s demand history 371ms
+     ✓ GET /api/imports lists the provenance of each run, for this organisation only 389ms
+ ✓ |db| tests/db/shifts-api.test.ts (37 tests) 8050ms
+   ✓ adding shifts (14)
+     ✓ stores café-local times as real instants and returns them in café time 502ms
+   ✓ nobody is booked twice at once (3)
+     ✓ allows back-to-back shifts, other people at the same time, and open shifts 337ms
+     ✓ holds when two managers book the same person at the same moment 302ms
+   ✓ seeing the roster (6)
+     ✓ managers see every shift in the week, with hours per person and totals 353ms
+     ✓ a manager can ask for just their own shifts 310ms
+     ✓ can show a longer period, up to six weeks 358ms
+   ✓ copying a week (2)
+     ✓ opens shifts of people who left, and skips ones that would double-book someone 454ms
+   ✓ the team list (4)
+     ✓ removing someone keeps their past shifts but opens their upcoming ones 460ms
+   ✓ a shift created by the manager appears in the employee’s own view (1)
+     ✓ links the rostered person on first sign-in 334ms
+ ✓ |db| tests/db/stock-api.test.ts (29 tests) 5573ms
+   ✓ recording movements (9)
+     ✓ a delivery adds stock and logs a movement, but is not demand 536ms
+     ✓ usage on the same day adds up; other days get their own row 320ms
+     ✓ keeps stock correct when many people record at the same moment 404ms
+   ✓ history (2)
+     ✓ lists movements newest first, filtered by item and type 341ms
+     ✓ returns a daily demand series with zeros for quiet days 413ms
+ ✓ |db| tests/db/items-api.test.ts (22 tests) 2774ms
+   ✓ items CRUD (5)
+     ✓ creates, reads, updates and deletes an item 469ms
+ ✓ |db| tests/db/suppliers-api.test.ts (26 tests) 2430ms
+   ✓ suppliers CRUD (4)
+     ✓ starts empty 344ms
+ ✓ |db| tests/db/auth-api.test.ts (22 tests) 2365ms
+   ✓ development sign-in (7)
+     ✓ tells the web app it is in development mode 335ms
+ ✓ |db| tests/db/tenancy.test.ts (10 tests) 1196ms
+ ✓ |db| tests/db/forecast-api.test.ts (6 tests) 1027ms
+ ✓ |db| tests/db/crud.test.ts (7 tests) 934ms
+ ✓ |db| tests/db/seed-and-health.test.ts (4 tests) 638ms
+ ✓ |db| tests/db/schema.test.ts (23 tests) 334ms
+
+ Test Files  18 passed (18)
+      Tests  277 passed (277)
+   Start at  09:59:46
+   Duration  49.06s (tests 79%, import 17%, transform 3%)
+
+
+> frontend@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.1 C:/Users/jason/Downloads/Y2T1/Cloud Computing/Project/cafestock/cafestock/frontend
+
+ ✓ src/stock/chart-data.test.ts (4 tests) 14ms
+ ✓ src/components/Notice.test.tsx (2 tests) 243ms
+ ✓ src/components/Stepper.test.tsx (4 tests) 633ms
+   ✓ Stepper (4)
+     ✓ has its own − and + buttons beside the field 361ms
+ ✓ src/SystemStatus.test.tsx (8 tests) 581ms
+   ✓ SystemStatus (8)
+     ✓ recovers on Re-check after a network failure 331ms
+ ✓ src/App.test.tsx (10 tests) 1029ms
+   ✓ App (10)
+     ✓ opens on the Stock page 394ms
+ ✓ src/stock/History.test.tsx (5 tests) 1056ms
+   ✓ StockPage — history (5)
+     ✓ shows where the data came from 532ms
+ ✓ src/forecast/ForecastPage.test.tsx (9 tests) 1144ms
+ ✓ src/suppliers/SuppliersPage.test.tsx (23 tests) 2636ms
+   ✓ SuppliersPage (10)
+     ✓ lists suppliers from the API 308ms
+     ✓ adds a supplier 662ms
+     ✓ validates the form before sending anything 435ms
+ ✓ src/items/ItemsPage.test.tsx (16 tests) 3514ms
+   ✓ ItemsPage (10)
+     ✓ adds an item linked to a supplier 1104ms
+     ✓ validates the form before sending anything 366ms
+     ✓ shows the server’s message for a duplicate name 471ms
+     ✓ archives an item, can undo, and shows archived items on request 380ms
+     ✓ filters by search, category and supplier, and can clear filters 381ms
+ ✓ src/auth/AuthProvider.test.tsx (13 tests) 3627ms
+   ✓ development sign-in (8)
+     ✓ signs in as manager and sends the token with API calls 442ms
+   ✓ Cognito sign-in (5)
+     ✓ signs in with email and password 586ms
+     ✓ shows a clear message for a wrong password 346ms
+     ✓ asks a new user to choose their own password 1199ms
+     ✓ revokes the refresh token on sign-out 650ms
+ ✓ src/stock/StockPage.test.tsx (14 tests) 3736ms
+   ✓ StockPage — stock count (5)
+     ✓ lists active items with expected stock and shows the difference as you type 706ms
+     ✓ saves only the items that were counted, and reports usage found 497ms
+   ✓ StockPage — record a movement (6)
+     ✓ records a delivery 456ms
+   ✓ StockPage — activity (2)
+     ✓ shows recorded changes newest first, and daily usage for one item 653ms
+ ✓ src/roster/RosterPage.test.tsx (15 tests) 4397ms
+   ✓ RosterPage — manager (11)
+     ✓ shows the week: each shift in its day, totals, and hours per person 484ms
+     ✓ adds a shift from a day column 775ms
+     ✓ adds an open shift that ends at midnight 322ms
+     ✓ shows why a double booking was refused, next to the person 385ms
+     ✓ edits a shift: gives it to nobody (open), then deletes it 477ms
+     ✓ adds a team member, and removing one opens their shifts 1087ms
+
+ Test Files  12 passed (12)
+      Tests  123 passed (123)
+   Start at  10:00:36
+   Duration  7.27s (tests 43%, environment 39%, setup 7%, transform 6%, import 5%)
+
+
+exit code 0

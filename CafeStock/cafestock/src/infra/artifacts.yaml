@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  CafeStock - private S3 bucket for build artifacts: the forecast Lambda's package (lambda/) and
+  the trained demand models (models/<tag>/model.txt + model.json).
+
+Parameters:
+  AppName:
+    Type: String
+    Default: cafestock
+    AllowedPattern: '^[a-z][a-z0-9-]{2,20}$'
+    Description: Short lower-case name used to label the resources.
+
+Resources:
+  ArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Bucket names are global, so the account number and region make it unique
+      BucketName: !Sub '${AppName}-artifacts-${AWS::AccountId}-${AWS::Region}'
+      # Every upload of models/lgbm-v1/model.txt keeps the earlier one: a simple model registry
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      LifecycleConfiguration:
+        Rules:
+          - Id: tidy-up
+            Status: Enabled
+            # Replaced versions (old Lambda packages, old model files) are deleted after 30 days
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+      Tags:
+        - Key: app
+          Value: !Ref AppName
+
+  ArtifactsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ArtifactsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: HttpsOnly
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt ArtifactsBucket.Arn
+              - !Sub '${ArtifactsBucket.Arn}/*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
+
+Outputs:
+  BucketName:
+    Description: Use this as ArtifactsBucket in the forecast stack.
+    Value: !Ref ArtifactsBucket
+    Export:
+      Name: !Sub '${AppName}-artifacts-bucket'
+  ModelS3Uri:
+    Description: Where the forecast Lambda reads the LightGBM model.
+    Value: !Sub 's3://${ArtifactsBucket}/models/lgbm-v1/model.txt'

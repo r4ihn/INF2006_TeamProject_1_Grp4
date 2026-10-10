@@ -1,0 +1,30 @@
+# Local PostgreSQL for development and tests.
+#   npm run db:up     start it (and wait until it's ready)
+#   npm run db:down   stop it (data is kept)
+#   npm run db:wipe   stop it AND delete all local data
+#
+# Host port 5433 (not the usual 5432) so it can't clash with a PostgreSQL you may have
+# installed for another module. Postgres 17 matches what we'll run on Amazon RDS.
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: cafestock-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cafestock
+      POSTGRES_PASSWORD: cafestock # local-only password; real ones live in Secrets Manager
+      POSTGRES_DB: cafestock
+    ports:
+      - '5433:5432'
+    volumes:
+      - cafestock-pgdata:/var/lib/postgresql/data
+      # Runs once, on first start: creates the separate cafestock_test database
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cafestock -d cafestock']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  cafestock-pgdata:

@@ -1,0 +1,22 @@
+{
+  "item": "Fresh milk",
+  "unit": "ml",
+  "forecast_day": "2025-03-24",
+  "weekday": "Monday",
+  "level": 1474.643,
+  "inputs": {
+    "days_ahead": 1.0,
+    "weekday": 0.0,
+    "same_weekday_1w": 0.8341,
+    "same_weekday_2w": 1.4987,
+    "weekday_avg_4w": 1.5919,
+    "last_day": 0.6442,
+    "mean_7": 1.0337,
+    "mean_14": 1.0133,
+    "std_28": 0.506,
+    "zero_share_28": 0.0
+  },
+  "model_output_scaled": 1.2893,
+  "prediction": 1901.2,
+  "baseline_prediction": 1494.3
+}

@@ -1,0 +1,12 @@
+{
+  "file": "demand_2025-03-23.csv",
+  "sha256": "7d8dc7b498ba901ba33297b8d50cd5ca3984f8d732ad037235d97a45f500bce3",
+  "organisation": "demo-cafe",
+  "source": "demand_history table (PostgreSQL), loaded by `npm run db:import` from data/",
+  "date_from": "2024-03-01",
+  "date_to": "2025-03-23",
+  "items": 8,
+  "rows": 3104,
+  "exported_at": "2026-09-26T14:18:32+00:00",
+  "command": "npm run analytics:snapshot"
+}

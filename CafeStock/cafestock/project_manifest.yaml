@@ -1,0 +1,111 @@
+# CafeStock - INF2006 Team Project 1. Schema from the brief (section 8); extra fields are marked.
+# Every path is relative to the ZIP root. `npm run submission` checks that each one exists.
+project:
+  group_id: 'G004' # TO FILL, e.g. "G012"
+  title: 'CafeStock - stock inventory and reorder forecasting for small cafes'
+  problem_statement: >-
+    Small cafes run out of fast-moving ingredients or waste perishable stock because stock is
+    tracked on paper and reordered by feel. CafeStock lets staff record deliveries, usage, waste
+    and counts, and gives the manager a nightly, explained reorder recommendation per ingredient
+    based on a demand forecast. Managers also plan the weekly staff roster (shifts, positions,
+    hours per person, no double-booking); staff see only their own shifts.
+  cloud_provider: 'AWS'
+  repository_commit: '' # optional
+team:
+  members:
+    - name: 'MOHAMED RAIHAN BIN ISMAIL'
+      student_id: '2503274'
+      role: 'Team Leader, Web Developer (Full stack)'
+    - name: 'HO SHANG JAY'
+      student_id: '2500526'
+      role: 'Web Developer, AWS Developer'
+    - name: 'HU SHIYAO'
+      student_id: '2500892'
+      role: 'Data Analyst'
+    - name: 'JASON WOO'
+      student_id: '2502583'
+      role: 'AWS deployment and operations lead (DevOps)'
+    - name: 'GOH JASON FADIL'
+      student_id: '2502643'
+      role: 'Demo Video Lead, Product Requirements & Ideation'
+architecture:
+  diagram: 'evidence/architecture.png'
+  service_model: >-
+    IaaS for the web/API tier (EC2 Auto Scaling group behind an Application Load Balancer, which
+    we patch and configure ourselves); PaaS for data and background work (Amazon RDS for
+    PostgreSQL, AWS Lambda, API Gateway HTTP API, S3, Secrets Manager, CloudWatch); managed
+    identity service (Amazon Cognito). Alternatives considered: Elastic Beanstalk/App Runner
+    (less control, not all available in the Learner Lab), containers on ECS Fargate (higher cost,
+    more set-up), DynamoDB (poor fit for relational stock and forecast data).
+  deployment_model: >-
+    Public cloud, single region (us-east-1) across two Availability Zones, in one AWS Academy
+    Learner Lab account; all infrastructure as code with AWS CloudFormation (src/infra/).
+  components:
+    - 'API Gateway HTTP API cafestock-web (HTTPS entry, throttling, VPC link cafestock-vpc-link)'
+    - 'Application Load Balancer cafestock-alb (internal) with AWS WAF web ACL cafestock-web'
+    - 'EC2 Auto Scaling group cafestock-app (Node.js 24 API + React web app, deploy/ec2/bootstrap.sh)'
+    - 'Amazon RDS for PostgreSQL 17 cafestock-db (private subnets, TLS, encrypted)'
+    - 'AWS Lambda cafestock-forecast (Python 3.13, LightGBM) + EventBridge rule cafestock-forecast-nightly'
+    - 'Amazon S3 cafestock-artifacts-<account>-<region> (release, Lambda package, models)'
+    - 'AWS Secrets Manager cafestock/database'
+    - 'Amazon Cognito user pool cafestock-users (groups manager, staff)'
+    - 'VPC cafestock-vpc with S3 and Secrets Manager endpoints (stack cafestock-network)'
+    - 'CloudWatch logs, metrics, dashboards cafestock-app and cafestock-forecast, alarms; SNS cafestock-forecast-alerts'
+  templates: # extra field
+    - 'src/infra/cognito.yaml'
+    - 'src/infra/artifacts.yaml'
+    - 'src/infra/network.yaml'
+    - 'src/infra/database.yaml'
+    - 'src/infra/app.yaml'
+    - 'src/infra/forecast.yaml'
+evidence:
+  functional_test: 'evidence/test-functional.md'
+  security_test: 'evidence/test-security.md'
+  data_ai_test: 'evidence/test-data-ai.md'
+  scale_resilience_test: 'evidence/test-resilience.md'
+  monitoring: 'evidence/monitoring.md'
+  automated_tests: 'evidence/test-runs/SUMMARY.md' # extra field
+  deployment_record: 'evidence/deployment.md' # extra field
+data_ai:
+  dataset: 'data/README.md'
+  data_dictionary: 'data/DATA_DICTIONARY.md' # extra field
+  method: >-
+    Daily ingredient demand is forecast 7 days ahead. Candidate A is a global LightGBM regression
+    model (lgbm-v1: 10 calendar and recent-demand features, targets scaled per item, trained on a
+    frozen snapshot, deterministic). Candidate B is a 14-day moving average. Reorder
+    recommendations use the chosen forecast: lead-time demand + safety stock
+    (1.65 x sigma x sqrt(lead time)) = reorder point; order up to the reorder point plus 7 days'
+    demand, capped by shelf life. Each nightly run scores both candidates on the last 8 weeks and
+    keeps the lower MASE.
+  evaluation: >-
+    Walk-forward over 47 weeks x 8 items, model retrained before each week using only earlier
+    data. Headline MASE (vs "same day last week"): 14-day average 0.827, LightGBM 0.855; weekly
+    WAPE 23.4% vs 21.4%. Results, charts and limitations in analytics/README.md and
+    evidence/test-data-ai.md.
+  reproducible_command: 'cd src && npm run forecast:setup && npm run analytics:setup && npm run analytics && npm run analytics:test'
+  notebook: 'analytics/demand_model.ipynb' # extra field
+security:
+  threat_control_map: 'evidence/threat-control-map.md'
+  secrets_handling: >-
+    The database password is generated by AWS Secrets Manager (cafestock/database) and never
+    typed, committed or logged. App servers read it at start-up into a root-only file; the Lambda
+    reads it through a VPC endpoint. No AWS access keys are used anywhere (Learner Lab roles).
+    Only .env.example files with placeholders are included.
+run:
+  prerequisites:
+    - 'Node.js 24 LTS (or 22.12+)'
+    - 'Docker Desktop (local PostgreSQL 17)'
+    - 'Python 3.12+ (forecasting and analytics)'
+    - 'Optional for deployment: AWS Academy Learner Lab account (us-east-1)'
+  commands:
+    - 'cd src'
+    - 'npm install'
+    - 'npm run db:setup'
+    - 'npm run db:import'
+    - 'npm run dev'
+    - 'npm test'
+    - 'npm run forecast:setup && npm run forecast:test'
+    - 'npm run analytics:setup && npm run analytics:test'
+declarations:
+  ai_use: 'AI_USE_DECLARATION.md'
+  contributions: 'TEAM_CONTRIBUTIONS.md'

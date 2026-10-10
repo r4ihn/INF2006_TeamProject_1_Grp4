@@ -1,0 +1,305 @@
+{
+  "model_tag": "lgbm-v1",
+  "snapshot": {
+    "file": "demand_2025-03-23.csv",
+    "sha256": "7d8dc7b498ba901ba33297b8d50cd5ca3984f8d732ad037235d97a45f500bce3"
+  },
+  "evaluation": {
+    "method": "walk-forward: from each scored week, forecast 7 days using only earlier days; model retrained each week",
+    "weeks_per_item": 47,
+    "horizon_days": 7,
+    "reference": "Same day last week",
+    "baseline": "Moving average, 14 days"
+  },
+  "summary": {
+    "reference": {
+      "points": 2632,
+      "mase": 1.0,
+      "wape": 0.5666,
+      "mape": 0.8182,
+      "weekly_wape": 0.2238,
+      "bias": -0.0199,
+      "label": "Same day last week"
+    },
+    "baseline": {
+      "points": 2632,
+      "mase": 0.8269,
+      "wape": 0.4637,
+      "mape": 0.6287,
+      "weekly_wape": 0.2337,
+      "bias": -0.0271,
+      "label": "Moving average, 14 days"
+    },
+    "model": {
+      "points": 2632,
+      "mase": 0.8551,
+      "wape": 0.4787,
+      "mape": 0.6435,
+      "weekly_wape": 0.2141,
+      "bias": -0.0158,
+      "label": "LightGBM (global model, retrained weekly)"
+    }
+  },
+  "head_to_head": {
+    "weeks_model_closer": 192,
+    "weeks_baseline_closer": 184,
+    "weeks_tied": 0,
+    "items_model_better_mase": []
+  },
+  "per_item": {
+    "Cocoa powder": {
+      "reference": {
+        "mase": 1.0,
+        "wape": 1.1703,
+        "mape": 0.8545,
+        "mae": 20.365,
+        "weekly_wape": 0.655
+      },
+      "baseline": {
+        "mase": 0.8889,
+        "wape": 1.0402,
+        "mape": 0.5703,
+        "mae": 18.101,
+        "weekly_wape": 0.5175
+      },
+      "model": {
+        "mase": 0.8959,
+        "wape": 1.0485,
+        "mape": 0.5922,
+        "mae": 18.245,
+        "weekly_wape": 0.544
+      }
+    },
+    "Cup lid 12oz": {
+      "reference": {
+        "mase": 1.0,
+        "wape": 0.5059,
+        "mape": 0.8135,
+        "mae": 4.395,
+        "weekly_wape": 0.2176
+      },
+      "baseline": {
+        "mase": 0.8215,
+        "wape": 0.4157,
+        "mape": 0.6856,
+        "mae": 3.611,
+        "weekly_wape": 0.2122
+      },
+      "model": {
+        "mase": 0.8379,
+        "wape": 0.4239,
+        "mape": 0.6885,
+        "mae": 3.682,
+        "weekly_wape": 0.2169
+      }
+    },
+    "Drinking chocolate": {
+      "reference": {
+        "mase": 1.0,
+        "wape": 1.313,
+        "mape": 0.8915,
+        "mae": 24.544,
+        "weekly_wape": 0.6301
+      },
+      "baseline": {
+        "mase": 0.8162,
+        "wape": 1.0717,
+        "mape": 0.5675,
+        "mae": 20.034,
+        "weekly_wape": 0.6077
+      },
+      "model": {
+        "mase": 0.8471,
+        "wape": 1.1123,
+        "mape": 0.554,
+        "mae": 20.792,
+        "weekly_wape": 0.5692
+      }
+    },
+    "Espresso beans": {
+      "reference": {
+        "mase": 1.0,
+        "wape": 0.5282,
+        "mape": 0.8471,
+        "mae": 59.635,
+        "weekly_wape": 0.2283
+      },
+      "baseline": {
+        "mase": 0.7994,
+        "wape": 0.4223,
+        "mape": 0.6992,
+        "mae": 47.671,
+        "weekly_wape": 0.2182
+      },
+      "model": {
+        "mase": 0.842,
+        "wape": 0.4448,
+        "mape": 0.6997,
+        "mae": 50.212,
+        "weekly_wape": 0.2366
+      }
+    },
+    "Fresh milk": {
+      "reference": {
+        "mase": 1.0,
+        "wape": 0.5499,
+        "mape": 0.8203,
+        "mae": 616.93,
+        "weekly_wape": 0.2099
+      },
+      "baseline": {
+        "mase": 0.8178,
+        "wape": 0.4497,
+        "mape": 0.744,
+        "mae": 504.548,
+        "weekly_wape": 0.2249
+      },
+      "model": {
+        "mase": 0.8431,
+        "wape": 0.4636,
+        "mape": 0.786,
+        "mae": 520.147,
+        "weekly_wape": 0.2003
+      }
+    },
+    "Napkin": {
+      "reference": {
+        "mase": 1.0,
+        "wape": 0.4839,
+        "mape": 0.7412,
+        "mae": 4.736,
+        "weekly_wape": 0.2112
+      },
+      "baseline": {
+        "mase": 0.8219,
+        "wape": 0.3977,
+        "mape": 0.6239,
+        "mae": 3.892,
+        "weekly_wape": 0.2048
+      },
+      "model": {
+        "mase": 0.8683,
+        "wape": 0.4201,
+        "mape": 0.6017,
+        "mae": 4.112,
+        "weekly_wape": 0.2376
+      }
+    },
+    "Paper cup 12oz": {
+      "reference": {
+        "mase": 1.0,
+        "wape": 0.5059,
+        "mape": 0.8135,
+        "mae": 4.395,
+        "weekly_wape": 0.2176
+      },
+      "baseline": {
+        "mase": 0.8215,
+        "wape": 0.4157,
+        "mape": 0.6856,
+        "mae": 3.611,
+        "weekly_wape": 0.2122
+      },
+      "model": {
+        "mase": 0.8379,
+        "wape": 0.4239,
+        "mape": 0.6885,
+        "mae": 3.682,
+        "weekly_wape": 0.2169
+      }
+    },
+    "Paper cup 8oz": {
+      "reference": {
+        "mase": 1.0,
+        "wape": 1.0497,
+        "mape": 0.7642,
+        "mae": 1.155,
+        "weekly_wape": 0.4475
+      },
+      "baseline": {
+        "mase": 0.8282,
+        "wape": 0.8694,
+        "mape": 0.4538,
+        "mae": 0.957,
+        "weekly_wape": 0.4475
+      },
+      "model": {
+        "mase": 0.8688,
+        "wape": 0.912,
+        "mape": 0.5371,
+        "mae": 1.003,
+        "weekly_wape": 0.4625
+      }
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "std_28",
+      "share": 0.1756,
+      "description": "Standard deviation of daily demand over the last 28 days, \u00f7 level"
+    },
+    {
+      "feature": "mean_14",
+      "share": 0.1669,
+      "description": "Average demand over the last 14 days, \u00f7 level"
+    },
+    {
+      "feature": "weekday",
+      "share": 0.1493,
+      "description": "Weekday of the forecast day (0 = Monday \u2026 6 = Sunday)"
+    },
+    {
+      "feature": "weekday_avg_4w",
+      "share": 0.1356,
+      "description": "Average demand on that weekday over the last 4 weeks, \u00f7 level"
+    },
+    {
+      "feature": "same_weekday_1w",
+      "share": 0.1083,
+      "description": "Demand on the same weekday a week before, \u00f7 level"
+    },
+    {
+      "feature": "zero_share_28",
+      "share": 0.1011,
+      "description": "Share of the last 28 days with zero demand (0\u20131)"
+    },
+    {
+      "feature": "mean_7",
+      "share": 0.0762,
+      "description": "Average demand over the last 7 days, \u00f7 level"
+    },
+    {
+      "feature": "same_weekday_2w",
+      "share": 0.066,
+      "description": "Demand on the same weekday two weeks before, \u00f7 level"
+    },
+    {
+      "feature": "last_day",
+      "share": 0.0118,
+      "description": "Demand on the most recent day, \u00f7 level"
+    },
+    {
+      "feature": "days_ahead",
+      "share": 0.0091,
+      "description": "How many days ahead the forecast day is (1\u20137)"
+    }
+  ],
+  "params": {
+    "objective": "regression",
+    "learning_rate": 0.05,
+    "num_iterations": 200,
+    "num_leaves": 15,
+    "min_data_in_leaf": 40,
+    "feature_fraction": 0.9,
+    "lambda_l2": 1.0,
+    "seed": 2006,
+    "deterministic": true,
+    "force_row_wise": true,
+    "num_threads": 1,
+    "verbose": -1
+  },
+  "versions": {
+    "lightgbm": "4.7.0",
+    "numpy": "2.4.6"
+  }
+}

@@ -1,0 +1,13 @@
+# Analytics (Task 8b + the team's analysis scripts). Pinned so results reproduce exactly.
+# Installed into forecasting/.venv by `npm run analytics:setup`.
+-r ../src/forecasting/requirements.txt
+lightgbm==4.7.0
+numpy==2.4.6
+pandas==3.0.6
+matplotlib==3.11.2
+# Running and saving the notebook (`npm run analytics:notebook`, or VS Code's Jupyter extension)
+nbclient==0.11.0
+nbformat==5.11.1
+ipykernel==7.3.0
+# Formatted tables in the notebook
+jinja2==3.1.6
