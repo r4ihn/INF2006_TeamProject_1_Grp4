@@ -1,0 +1,72 @@
+{
+  "name": "cafestock",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CafeStock — stock inventory management for small F&B businesses (INF2006 MVP)",
+  "type": "module",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently --names api,web --prefix-colors blue,magenta --kill-others-on-fail \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "build": "npm run build -w backend && npm run build -w frontend",
+    "test": "npm run test -w backend && npm run test -w frontend",
+    "test:unit": "npm run test:unit -w backend && npm run test -w frontend",
+    "typecheck": "npm run typecheck -w backend && npm run typecheck -w frontend",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:wipe": "docker compose down -v",
+    "db:setup": "npm run db:up && npm run db:deploy -w backend && npm run db:seed -w backend",
+    "db:migrate": "npm run db:migrate -w backend",
+    "db:seed": "npm run db:seed -w backend",
+    "db:import": "npm run db:import -w backend --",
+    "db:studio": "npm run db:studio -w backend",
+    "db:reset": "npm run db:reset -w backend",
+    "forecast:setup": "node scripts/py.mjs setup",
+    "forecast:test": "node scripts/py.mjs test",
+    "forecast": "node scripts/py.mjs run",
+    "forecast:publish": "node scripts/py.mjs publish",
+    "lambda:invoke": "node scripts/py.mjs lambda-invoke",
+    "lambda:build": "node scripts/py.mjs lambda-build",
+    "app:build": "node scripts/build-app.mjs",
+    "smoke": "node scripts/smoke-test.mjs",
+    "evidence:tests": "node scripts/record-tests.mjs",
+    "submission": "node scripts/package-submission.mjs",
+    "analytics:setup": "node scripts/py.mjs analytics-setup",
+    "analytics:snapshot": "node scripts/py.mjs snapshot",
+    "analytics": "node scripts/py.mjs analytics",
+    "analytics:team": "node scripts/py.mjs team",
+    "analytics:notebook": "node scripts/py.mjs notebook",
+    "analytics:test": "node scripts/py.mjs analytics-test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "concurrently": "^10.0.5",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.9",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.1"
+  },
+  "overrides": {
+    "deepmerge-ts": "^8.0.2",
+    "mysql2": "^3.24.4"
+  },
+  "allowScripts": {
+    "@prisma/engines": true,
+    "esbuild": true,
+    "prisma": true
+  }
+}

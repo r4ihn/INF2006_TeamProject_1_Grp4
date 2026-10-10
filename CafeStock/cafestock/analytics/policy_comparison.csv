@@ -1,0 +1,17 @@
+policy,safety_z,stockout_days_total,ingredients_with_stockout,service_level,waste_rate,avg_days_of_cover
+Fixed level (no forecast),0.0,394,8,0.8635,0.0027,11.7
+Fixed level (no forecast),1.0,313,8,0.8976,0.0027,12.7
+Fixed level (no forecast),1.65,264,8,0.9165,0.0028,13.0
+Fixed level (no forecast),2.5,226,8,0.9366,0.0031,13.8
+Naive (last week),0.0,192,8,0.9478,0.0041,15.2
+Naive (last week),1.0,179,8,0.9539,0.0047,16.6
+Naive (last week),1.65,166,8,0.9566,0.005,17.4
+Naive (last week),2.5,163,8,0.9574,0.0061,18.4
+MA-2,0.0,198,8,0.9496,0.003,15.3
+MA-2,1.0,180,8,0.9537,0.0037,16.4
+MA-2,1.65,172,8,0.9542,0.0046,17.1
+MA-2,2.5,153,8,0.9595,0.0056,18.0
+MA-4,0.0,209,8,0.9475,0.0031,15.2
+MA-4,1.0,165,8,0.958,0.0045,15.8
+MA-4,1.65,158,8,0.9591,0.0056,16.7
+MA-4,2.5,157,8,0.9595,0.0061,17.4

@@ -1,0 +1,449 @@
+ingredient_id,week_starting,units,ingredient_name,unit
+1,2024-02-26,216,Espresso beans,g
+1,2024-03-04,522,Espresso beans,g
+1,2024-03-11,405,Espresso beans,g
+1,2024-03-18,396,Espresso beans,g
+1,2024-03-25,504,Espresso beans,g
+1,2024-04-01,441,Espresso beans,g
+1,2024-04-08,486,Espresso beans,g
+1,2024-04-15,522,Espresso beans,g
+1,2024-04-22,423,Espresso beans,g
+1,2024-04-29,342,Espresso beans,g
+1,2024-05-06,603,Espresso beans,g
+1,2024-05-13,684,Espresso beans,g
+1,2024-05-20,990,Espresso beans,g
+1,2024-05-27,855,Espresso beans,g
+1,2024-06-03,855,Espresso beans,g
+1,2024-06-10,540,Espresso beans,g
+1,2024-06-17,792,Espresso beans,g
+1,2024-06-24,495,Espresso beans,g
+1,2024-07-01,540,Espresso beans,g
+1,2024-07-08,324,Espresso beans,g
+1,2024-07-15,432,Espresso beans,g
+1,2024-07-22,900,Espresso beans,g
+1,2024-07-29,1134,Espresso beans,g
+1,2024-08-05,927,Espresso beans,g
+1,2024-08-12,1035,Espresso beans,g
+1,2024-08-19,738,Espresso beans,g
+1,2024-08-26,468,Espresso beans,g
+1,2024-09-02,1089,Espresso beans,g
+1,2024-09-09,891,Espresso beans,g
+1,2024-09-16,1071,Espresso beans,g
+1,2024-09-23,1134,Espresso beans,g
+1,2024-09-30,864,Espresso beans,g
+1,2024-10-07,1188,Espresso beans,g
+1,2024-10-14,1161,Espresso beans,g
+1,2024-10-21,1089,Espresso beans,g
+1,2024-10-28,918,Espresso beans,g
+1,2024-11-04,693,Espresso beans,g
+1,2024-11-11,792,Espresso beans,g
+1,2024-11-18,531,Espresso beans,g
+1,2024-11-25,540,Espresso beans,g
+1,2024-12-02,729,Espresso beans,g
+1,2024-12-09,387,Espresso beans,g
+1,2024-12-16,684,Espresso beans,g
+1,2024-12-23,693,Espresso beans,g
+1,2024-12-30,648,Espresso beans,g
+1,2025-01-06,495,Espresso beans,g
+1,2025-01-13,603,Espresso beans,g
+1,2025-01-20,405,Espresso beans,g
+1,2025-01-27,783,Espresso beans,g
+1,2025-02-03,963,Espresso beans,g
+1,2025-02-10,909,Espresso beans,g
+1,2025-02-17,1026,Espresso beans,g
+1,2025-02-24,1044,Espresso beans,g
+1,2025-03-03,999,Espresso beans,g
+1,2025-03-10,1017,Espresso beans,g
+1,2025-03-17,1143,Espresso beans,g
+2,2024-02-26,2680,Fresh milk,ml
+2,2024-03-04,5280,Fresh milk,ml
+2,2024-03-11,2650,Fresh milk,ml
+2,2024-03-18,3270,Fresh milk,ml
+2,2024-03-25,4630,Fresh milk,ml
+2,2024-04-01,3250,Fresh milk,ml
+2,2024-04-08,4150,Fresh milk,ml
+2,2024-04-15,4900,Fresh milk,ml
+2,2024-04-22,3480,Fresh milk,ml
+2,2024-04-29,2600,Fresh milk,ml
+2,2024-05-06,5250,Fresh milk,ml
+2,2024-05-13,5370,Fresh milk,ml
+2,2024-05-20,8480,Fresh milk,ml
+2,2024-05-27,8850,Fresh milk,ml
+2,2024-06-03,7330,Fresh milk,ml
+2,2024-06-10,6530,Fresh milk,ml
+2,2024-06-17,6360,Fresh milk,ml
+2,2024-06-24,4370,Fresh milk,ml
+2,2024-07-01,4860,Fresh milk,ml
+2,2024-07-08,3600,Fresh milk,ml
+2,2024-07-15,4490,Fresh milk,ml
+2,2024-07-22,7000,Fresh milk,ml
+2,2024-07-29,8910,Fresh milk,ml
+2,2024-08-05,9030,Fresh milk,ml
+2,2024-08-12,8140,Fresh milk,ml
+2,2024-08-19,5450,Fresh milk,ml
+2,2024-08-26,3230,Fresh milk,ml
+2,2024-09-02,9330,Fresh milk,ml
+2,2024-09-09,7620,Fresh milk,ml
+2,2024-09-16,9780,Fresh milk,ml
+2,2024-09-23,10050,Fresh milk,ml
+2,2024-09-30,9910,Fresh milk,ml
+2,2024-10-07,12400,Fresh milk,ml
+2,2024-10-14,16850,Fresh milk,ml
+2,2024-10-21,11750,Fresh milk,ml
+2,2024-10-28,10930,Fresh milk,ml
+2,2024-11-04,10250,Fresh milk,ml
+2,2024-11-11,10540,Fresh milk,ml
+2,2024-11-18,6750,Fresh milk,ml
+2,2024-11-25,7510,Fresh milk,ml
+2,2024-12-02,6790,Fresh milk,ml
+2,2024-12-09,4780,Fresh milk,ml
+2,2024-12-16,8040,Fresh milk,ml
+2,2024-12-23,6070,Fresh milk,ml
+2,2024-12-30,5680,Fresh milk,ml
+2,2025-01-06,4840,Fresh milk,ml
+2,2025-01-13,7210,Fresh milk,ml
+2,2025-01-20,3980,Fresh milk,ml
+2,2025-01-27,6460,Fresh milk,ml
+2,2025-02-03,10990,Fresh milk,ml
+2,2025-02-10,9810,Fresh milk,ml
+2,2025-02-17,9670,Fresh milk,ml
+2,2025-02-24,10160,Fresh milk,ml
+2,2025-03-03,10210,Fresh milk,ml
+2,2025-03-10,10250,Fresh milk,ml
+2,2025-03-17,10670,Fresh milk,ml
+3,2024-02-26,125,Drinking chocolate,g
+3,2024-03-04,175,Drinking chocolate,g
+3,2024-03-11,125,Drinking chocolate,g
+3,2024-03-18,25,Drinking chocolate,g
+3,2024-03-25,50,Drinking chocolate,g
+3,2024-04-01,50,Drinking chocolate,g
+3,2024-04-08,75,Drinking chocolate,g
+3,2024-04-15,100,Drinking chocolate,g
+3,2024-04-22,25,Drinking chocolate,g
+3,2024-04-29,0,Drinking chocolate,g
+3,2024-05-06,0,Drinking chocolate,g
+3,2024-05-13,100,Drinking chocolate,g
+3,2024-05-20,125,Drinking chocolate,g
+3,2024-05-27,100,Drinking chocolate,g
+3,2024-06-03,50,Drinking chocolate,g
+3,2024-06-10,250,Drinking chocolate,g
+3,2024-06-17,0,Drinking chocolate,g
+3,2024-06-24,50,Drinking chocolate,g
+3,2024-07-01,50,Drinking chocolate,g
+3,2024-07-08,125,Drinking chocolate,g
+3,2024-07-15,50,Drinking chocolate,g
+3,2024-07-22,0,Drinking chocolate,g
+3,2024-07-29,50,Drinking chocolate,g
+3,2024-08-05,50,Drinking chocolate,g
+3,2024-08-12,75,Drinking chocolate,g
+3,2024-08-19,25,Drinking chocolate,g
+3,2024-08-26,0,Drinking chocolate,g
+3,2024-09-02,25,Drinking chocolate,g
+3,2024-09-09,50,Drinking chocolate,g
+3,2024-09-16,125,Drinking chocolate,g
+3,2024-09-23,50,Drinking chocolate,g
+3,2024-09-30,425,Drinking chocolate,g
+3,2024-10-07,275,Drinking chocolate,g
+3,2024-10-14,450,Drinking chocolate,g
+3,2024-10-21,225,Drinking chocolate,g
+3,2024-10-28,175,Drinking chocolate,g
+3,2024-11-04,350,Drinking chocolate,g
+3,2024-11-11,300,Drinking chocolate,g
+3,2024-11-18,100,Drinking chocolate,g
+3,2024-11-25,100,Drinking chocolate,g
+3,2024-12-02,125,Drinking chocolate,g
+3,2024-12-09,125,Drinking chocolate,g
+3,2024-12-16,250,Drinking chocolate,g
+3,2024-12-23,100,Drinking chocolate,g
+3,2024-12-30,75,Drinking chocolate,g
+3,2025-01-06,75,Drinking chocolate,g
+3,2025-01-13,150,Drinking chocolate,g
+3,2025-01-20,75,Drinking chocolate,g
+3,2025-01-27,50,Drinking chocolate,g
+3,2025-02-03,175,Drinking chocolate,g
+3,2025-02-10,300,Drinking chocolate,g
+3,2025-02-17,225,Drinking chocolate,g
+3,2025-02-24,100,Drinking chocolate,g
+3,2025-03-03,250,Drinking chocolate,g
+3,2025-03-10,175,Drinking chocolate,g
+3,2025-03-17,150,Drinking chocolate,g
+4,2024-02-26,50,Cocoa powder,g
+4,2024-03-04,25,Cocoa powder,g
+4,2024-03-11,0,Cocoa powder,g
+4,2024-03-18,50,Cocoa powder,g
+4,2024-03-25,25,Cocoa powder,g
+4,2024-04-01,0,Cocoa powder,g
+4,2024-04-08,0,Cocoa powder,g
+4,2024-04-15,75,Cocoa powder,g
+4,2024-04-22,25,Cocoa powder,g
+4,2024-04-29,0,Cocoa powder,g
+4,2024-05-06,75,Cocoa powder,g
+4,2024-05-13,0,Cocoa powder,g
+4,2024-05-20,25,Cocoa powder,g
+4,2024-05-27,125,Cocoa powder,g
+4,2024-06-03,25,Cocoa powder,g
+4,2024-06-10,25,Cocoa powder,g
+4,2024-06-17,25,Cocoa powder,g
+4,2024-06-24,0,Cocoa powder,g
+4,2024-07-01,50,Cocoa powder,g
+4,2024-07-08,0,Cocoa powder,g
+4,2024-07-15,50,Cocoa powder,g
+4,2024-07-22,50,Cocoa powder,g
+4,2024-07-29,75,Cocoa powder,g
+4,2024-08-05,200,Cocoa powder,g
+4,2024-08-12,25,Cocoa powder,g
+4,2024-08-19,50,Cocoa powder,g
+4,2024-08-26,0,Cocoa powder,g
+4,2024-09-02,150,Cocoa powder,g
+4,2024-09-09,0,Cocoa powder,g
+4,2024-09-16,50,Cocoa powder,g
+4,2024-09-23,25,Cocoa powder,g
+4,2024-09-30,75,Cocoa powder,g
+4,2024-10-07,100,Cocoa powder,g
+4,2024-10-14,325,Cocoa powder,g
+4,2024-10-21,200,Cocoa powder,g
+4,2024-10-28,250,Cocoa powder,g
+4,2024-11-04,250,Cocoa powder,g
+4,2024-11-11,125,Cocoa powder,g
+4,2024-11-18,150,Cocoa powder,g
+4,2024-11-25,250,Cocoa powder,g
+4,2024-12-02,50,Cocoa powder,g
+4,2024-12-09,200,Cocoa powder,g
+4,2024-12-16,125,Cocoa powder,g
+4,2024-12-23,75,Cocoa powder,g
+4,2024-12-30,100,Cocoa powder,g
+4,2025-01-06,50,Cocoa powder,g
+4,2025-01-13,75,Cocoa powder,g
+4,2025-01-20,100,Cocoa powder,g
+4,2025-01-27,50,Cocoa powder,g
+4,2025-02-03,525,Cocoa powder,g
+4,2025-02-10,250,Cocoa powder,g
+4,2025-02-17,325,Cocoa powder,g
+4,2025-02-24,325,Cocoa powder,g
+4,2025-03-03,250,Cocoa powder,g
+4,2025-03-10,200,Cocoa powder,g
+4,2025-03-17,275,Cocoa powder,g
+5,2024-02-26,2,Paper cup 8oz,unit
+5,2024-03-04,8,Paper cup 8oz,unit
+5,2024-03-11,13,Paper cup 8oz,unit
+5,2024-03-18,7,Paper cup 8oz,unit
+5,2024-03-25,7,Paper cup 8oz,unit
+5,2024-04-01,8,Paper cup 8oz,unit
+5,2024-04-08,4,Paper cup 8oz,unit
+5,2024-04-15,4,Paper cup 8oz,unit
+5,2024-04-22,1,Paper cup 8oz,unit
+5,2024-04-29,3,Paper cup 8oz,unit
+5,2024-05-06,4,Paper cup 8oz,unit
+5,2024-05-13,5,Paper cup 8oz,unit
+5,2024-05-20,10,Paper cup 8oz,unit
+5,2024-05-27,6,Paper cup 8oz,unit
+5,2024-06-03,11,Paper cup 8oz,unit
+5,2024-06-10,6,Paper cup 8oz,unit
+5,2024-06-17,6,Paper cup 8oz,unit
+5,2024-06-24,5,Paper cup 8oz,unit
+5,2024-07-01,4,Paper cup 8oz,unit
+5,2024-07-08,1,Paper cup 8oz,unit
+5,2024-07-15,3,Paper cup 8oz,unit
+5,2024-07-22,11,Paper cup 8oz,unit
+5,2024-07-29,14,Paper cup 8oz,unit
+5,2024-08-05,14,Paper cup 8oz,unit
+5,2024-08-12,16,Paper cup 8oz,unit
+5,2024-08-19,14,Paper cup 8oz,unit
+5,2024-08-26,6,Paper cup 8oz,unit
+5,2024-09-02,17,Paper cup 8oz,unit
+5,2024-09-09,13,Paper cup 8oz,unit
+5,2024-09-16,10,Paper cup 8oz,unit
+5,2024-09-23,8,Paper cup 8oz,unit
+5,2024-09-30,13,Paper cup 8oz,unit
+5,2024-10-07,13,Paper cup 8oz,unit
+5,2024-10-14,6,Paper cup 8oz,unit
+5,2024-10-21,15,Paper cup 8oz,unit
+5,2024-10-28,6,Paper cup 8oz,unit
+5,2024-11-04,3,Paper cup 8oz,unit
+5,2024-11-11,4,Paper cup 8oz,unit
+5,2024-11-18,5,Paper cup 8oz,unit
+5,2024-11-25,1,Paper cup 8oz,unit
+5,2024-12-02,7,Paper cup 8oz,unit
+5,2024-12-09,6,Paper cup 8oz,unit
+5,2024-12-16,11,Paper cup 8oz,unit
+5,2024-12-23,15,Paper cup 8oz,unit
+5,2024-12-30,9,Paper cup 8oz,unit
+5,2025-01-06,5,Paper cup 8oz,unit
+5,2025-01-13,5,Paper cup 8oz,unit
+5,2025-01-20,6,Paper cup 8oz,unit
+5,2025-01-27,8,Paper cup 8oz,unit
+5,2025-02-03,11,Paper cup 8oz,unit
+5,2025-02-10,4,Paper cup 8oz,unit
+5,2025-02-17,6,Paper cup 8oz,unit
+5,2025-02-24,4,Paper cup 8oz,unit
+5,2025-03-03,3,Paper cup 8oz,unit
+5,2025-03-10,2,Paper cup 8oz,unit
+5,2025-03-17,7,Paper cup 8oz,unit
+6,2024-02-26,24,Paper cup 12oz,unit
+6,2024-03-04,37,Paper cup 12oz,unit
+6,2024-03-11,25,Paper cup 12oz,unit
+6,2024-03-18,24,Paper cup 12oz,unit
+6,2024-03-25,28,Paper cup 12oz,unit
+6,2024-04-01,26,Paper cup 12oz,unit
+6,2024-04-08,32,Paper cup 12oz,unit
+6,2024-04-15,43,Paper cup 12oz,unit
+6,2024-04-22,34,Paper cup 12oz,unit
+6,2024-04-29,21,Paper cup 12oz,unit
+6,2024-05-06,41,Paper cup 12oz,unit
+6,2024-05-13,53,Paper cup 12oz,unit
+6,2024-05-20,65,Paper cup 12oz,unit
+6,2024-05-27,64,Paper cup 12oz,unit
+6,2024-06-03,50,Paper cup 12oz,unit
+6,2024-06-10,48,Paper cup 12oz,unit
+6,2024-06-17,50,Paper cup 12oz,unit
+6,2024-06-24,32,Paper cup 12oz,unit
+6,2024-07-01,42,Paper cup 12oz,unit
+6,2024-07-08,29,Paper cup 12oz,unit
+6,2024-07-15,31,Paper cup 12oz,unit
+6,2024-07-22,59,Paper cup 12oz,unit
+6,2024-07-29,79,Paper cup 12oz,unit
+6,2024-08-05,59,Paper cup 12oz,unit
+6,2024-08-12,65,Paper cup 12oz,unit
+6,2024-08-19,42,Paper cup 12oz,unit
+6,2024-08-26,30,Paper cup 12oz,unit
+6,2024-09-02,70,Paper cup 12oz,unit
+6,2024-09-09,48,Paper cup 12oz,unit
+6,2024-09-16,80,Paper cup 12oz,unit
+6,2024-09-23,74,Paper cup 12oz,unit
+6,2024-09-30,70,Paper cup 12oz,unit
+6,2024-10-07,86,Paper cup 12oz,unit
+6,2024-10-14,103,Paper cup 12oz,unit
+6,2024-10-21,77,Paper cup 12oz,unit
+6,2024-10-28,80,Paper cup 12oz,unit
+6,2024-11-04,71,Paper cup 12oz,unit
+6,2024-11-11,68,Paper cup 12oz,unit
+6,2024-11-18,39,Paper cup 12oz,unit
+6,2024-11-25,53,Paper cup 12oz,unit
+6,2024-12-02,55,Paper cup 12oz,unit
+6,2024-12-09,37,Paper cup 12oz,unit
+6,2024-12-16,49,Paper cup 12oz,unit
+6,2024-12-23,40,Paper cup 12oz,unit
+6,2024-12-30,45,Paper cup 12oz,unit
+6,2025-01-06,37,Paper cup 12oz,unit
+6,2025-01-13,44,Paper cup 12oz,unit
+6,2025-01-20,31,Paper cup 12oz,unit
+6,2025-01-27,54,Paper cup 12oz,unit
+6,2025-02-03,95,Paper cup 12oz,unit
+6,2025-02-10,96,Paper cup 12oz,unit
+6,2025-02-17,105,Paper cup 12oz,unit
+6,2025-02-24,98,Paper cup 12oz,unit
+6,2025-03-03,99,Paper cup 12oz,unit
+6,2025-03-10,92,Paper cup 12oz,unit
+6,2025-03-17,102,Paper cup 12oz,unit
+7,2024-02-26,24,Cup lid 12oz,unit
+7,2024-03-04,37,Cup lid 12oz,unit
+7,2024-03-11,25,Cup lid 12oz,unit
+7,2024-03-18,24,Cup lid 12oz,unit
+7,2024-03-25,28,Cup lid 12oz,unit
+7,2024-04-01,26,Cup lid 12oz,unit
+7,2024-04-08,32,Cup lid 12oz,unit
+7,2024-04-15,43,Cup lid 12oz,unit
+7,2024-04-22,34,Cup lid 12oz,unit
+7,2024-04-29,21,Cup lid 12oz,unit
+7,2024-05-06,41,Cup lid 12oz,unit
+7,2024-05-13,53,Cup lid 12oz,unit
+7,2024-05-20,65,Cup lid 12oz,unit
+7,2024-05-27,64,Cup lid 12oz,unit
+7,2024-06-03,50,Cup lid 12oz,unit
+7,2024-06-10,48,Cup lid 12oz,unit
+7,2024-06-17,50,Cup lid 12oz,unit
+7,2024-06-24,32,Cup lid 12oz,unit
+7,2024-07-01,42,Cup lid 12oz,unit
+7,2024-07-08,29,Cup lid 12oz,unit
+7,2024-07-15,31,Cup lid 12oz,unit
+7,2024-07-22,59,Cup lid 12oz,unit
+7,2024-07-29,79,Cup lid 12oz,unit
+7,2024-08-05,59,Cup lid 12oz,unit
+7,2024-08-12,65,Cup lid 12oz,unit
+7,2024-08-19,42,Cup lid 12oz,unit
+7,2024-08-26,30,Cup lid 12oz,unit
+7,2024-09-02,70,Cup lid 12oz,unit
+7,2024-09-09,48,Cup lid 12oz,unit
+7,2024-09-16,80,Cup lid 12oz,unit
+7,2024-09-23,74,Cup lid 12oz,unit
+7,2024-09-30,70,Cup lid 12oz,unit
+7,2024-10-07,86,Cup lid 12oz,unit
+7,2024-10-14,103,Cup lid 12oz,unit
+7,2024-10-21,77,Cup lid 12oz,unit
+7,2024-10-28,80,Cup lid 12oz,unit
+7,2024-11-04,71,Cup lid 12oz,unit
+7,2024-11-11,68,Cup lid 12oz,unit
+7,2024-11-18,39,Cup lid 12oz,unit
+7,2024-11-25,53,Cup lid 12oz,unit
+7,2024-12-02,55,Cup lid 12oz,unit
+7,2024-12-09,37,Cup lid 12oz,unit
+7,2024-12-16,49,Cup lid 12oz,unit
+7,2024-12-23,40,Cup lid 12oz,unit
+7,2024-12-30,45,Cup lid 12oz,unit
+7,2025-01-06,37,Cup lid 12oz,unit
+7,2025-01-13,44,Cup lid 12oz,unit
+7,2025-01-20,31,Cup lid 12oz,unit
+7,2025-01-27,54,Cup lid 12oz,unit
+7,2025-02-03,95,Cup lid 12oz,unit
+7,2025-02-10,96,Cup lid 12oz,unit
+7,2025-02-17,105,Cup lid 12oz,unit
+7,2025-02-24,98,Cup lid 12oz,unit
+7,2025-03-03,99,Cup lid 12oz,unit
+7,2025-03-10,92,Cup lid 12oz,unit
+7,2025-03-17,102,Cup lid 12oz,unit
+8,2024-02-26,26,Napkin,unit
+8,2024-03-04,45,Napkin,unit
+8,2024-03-11,38,Napkin,unit
+8,2024-03-18,31,Napkin,unit
+8,2024-03-25,35,Napkin,unit
+8,2024-04-01,34,Napkin,unit
+8,2024-04-08,36,Napkin,unit
+8,2024-04-15,47,Napkin,unit
+8,2024-04-22,35,Napkin,unit
+8,2024-04-29,24,Napkin,unit
+8,2024-05-06,45,Napkin,unit
+8,2024-05-13,58,Napkin,unit
+8,2024-05-20,75,Napkin,unit
+8,2024-05-27,70,Napkin,unit
+8,2024-06-03,61,Napkin,unit
+8,2024-06-10,54,Napkin,unit
+8,2024-06-17,56,Napkin,unit
+8,2024-06-24,37,Napkin,unit
+8,2024-07-01,46,Napkin,unit
+8,2024-07-08,30,Napkin,unit
+8,2024-07-15,34,Napkin,unit
+8,2024-07-22,70,Napkin,unit
+8,2024-07-29,93,Napkin,unit
+8,2024-08-05,73,Napkin,unit
+8,2024-08-12,81,Napkin,unit
+8,2024-08-19,56,Napkin,unit
+8,2024-08-26,36,Napkin,unit
+8,2024-09-02,87,Napkin,unit
+8,2024-09-09,61,Napkin,unit
+8,2024-09-16,90,Napkin,unit
+8,2024-09-23,82,Napkin,unit
+8,2024-09-30,83,Napkin,unit
+8,2024-10-07,99,Napkin,unit
+8,2024-10-14,109,Napkin,unit
+8,2024-10-21,92,Napkin,unit
+8,2024-10-28,86,Napkin,unit
+8,2024-11-04,74,Napkin,unit
+8,2024-11-11,72,Napkin,unit
+8,2024-11-18,44,Napkin,unit
+8,2024-11-25,54,Napkin,unit
+8,2024-12-02,62,Napkin,unit
+8,2024-12-09,43,Napkin,unit
+8,2024-12-16,60,Napkin,unit
+8,2024-12-23,55,Napkin,unit
+8,2024-12-30,54,Napkin,unit
+8,2025-01-06,42,Napkin,unit
+8,2025-01-13,49,Napkin,unit
+8,2025-01-20,37,Napkin,unit
+8,2025-01-27,62,Napkin,unit
+8,2025-02-03,106,Napkin,unit
+8,2025-02-10,100,Napkin,unit
+8,2025-02-17,111,Napkin,unit
+8,2025-02-24,102,Napkin,unit
+8,2025-03-03,102,Napkin,unit
+8,2025-03-10,94,Napkin,unit
+8,2025-03-17,109,Napkin,unit

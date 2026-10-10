@@ -1,0 +1,161 @@
+$ npm run check
+# 2026-10-07T14:25:10.172Z
+
+
+> cafestock@0.1.0 check
+> npm run format:check && npm run lint && npm run typecheck && npm run test
+
+
+> cafestock@0.1.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> cafestock@0.1.0 lint
+> eslint .
+
+
+> cafestock@0.1.0 typecheck
+> npm run typecheck -w backend && npm run typecheck -w frontend
+
+
+> backend@0.1.0 typecheck
+> tsc --noEmit
+
+
+> frontend@0.1.0 typecheck
+> tsc --noEmit
+
+
+> cafestock@0.1.0 test
+> npm run test -w backend && npm run test -w frontend
+
+
+> backend@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.1 C:/Users/jason/Downloads/Y2T1/Cloud Computing/Project/cafestock/cafestock/backend
+
+ ✓ |unit| tests/unit/db-errors.test.ts (4 tests) 6ms
+ ✓ |unit| tests/unit/import-csv.test.ts (8 tests) 14ms
+ ✓ |unit| tests/unit/coffee-dataset.test.ts (22 tests) 41ms
+ ✓ |unit| tests/unit/auth-config.test.ts (13 tests) 50ms
+ ✓ |unit| tests/unit/error-handler.test.ts (3 tests) 52ms
+ ✓ |unit| tests/unit/web-app.test.ts (6 tests) 146ms
+ ✓ |unit| tests/unit/health.test.ts (13 tests) 385ms
+ ✓ |db| tests/db/dataset-import.test.ts (22 tests) 7812ms
+   ✓ importing the team dataset (data/) (1)
+     ✓ loads 8 items, 388 days of demand each, and the full ledger 3945ms
+   ✓ npm run db:import (the command) (3)
+     ✓ imports and prints the provenance and a per-item summary 591ms
+     ✓ --if-empty imports once, then does nothing (a new server on AWS) 585ms
+ ✓ |db| tests/db/shifts-api.test.ts (37 tests) 4342ms
+   ✓ adding shifts (14)
+     ✓ stores café-local times as real instants and returns them in café time 420ms
+ ✓ |db| tests/db/stock-api.test.ts (29 tests) 2672ms
+ ✓ |db| tests/db/suppliers-api.test.ts (26 tests) 2320ms
+ ✓ |db| tests/db/auth-api.test.ts (22 tests) 2165ms
+   ✓ development sign-in (7)
+     ✓ tells the web app it is in development mode 322ms
+ ✓ |db| tests/db/items-api.test.ts (22 tests) 2451ms
+   ✓ items CRUD (5)
+     ✓ creates, reads, updates and deletes an item 509ms
+     ✓ lists active items grouped by category, then name, with filters 303ms
+ ✓ |db| tests/db/tenancy.test.ts (10 tests) 1217ms
+ ✓ |db| tests/db/forecast-api.test.ts (6 tests) 967ms
+ ✓ |db| tests/db/crud.test.ts (7 tests) 1089ms
+   ✓ CRUD round trips (7)
+     ✓ organizations 370ms
+ ✓ |db| tests/db/seed-and-health.test.ts (4 tests) 733ms
+   ✓ seed (2)
+     ✓ creates the demo organisation 300ms
+ ✓ |db| tests/db/schema.test.ts (23 tests) 334ms
+
+ Test Files  18 passed (18)
+      Tests  277 passed (277)
+   Start at  22:24:20
+   Duration  38.80s (tests 74%, import 22%, transform 4%)
+
+
+> frontend@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.1 C:/Users/jason/Downloads/Y2T1/Cloud Computing/Project/cafestock/cafestock/frontend
+
+ ✓ src/stock/chart-data.test.ts (4 tests) 15ms
+ ✓ src/components/Notice.test.tsx (2 tests) 450ms
+   ✓ Notice (2)
+     ✓ shows the message with a × that closes it 421ms
+ ✓ src/components/Stepper.test.tsx (4 tests) 910ms
+   ✓ Stepper (4)
+     ✓ has its own − and + buttons beside the field 581ms
+ ✓ src/SystemStatus.test.tsx (8 tests) 823ms
+   ✓ SystemStatus (8)
+     ✓ recovers on Re-check after a network failure 430ms
+ ✓ src/stock/History.test.tsx (5 tests) 1508ms
+   ✓ StockPage — history (5)
+     ✓ shows where the data came from 698ms
+     ✓ reads any day with the arrow keys, and offers the numbers as a table 310ms
+ ✓ src/App.test.tsx (10 tests) 1593ms
+   ✓ App (10)
+     ✓ opens on the Stock page 552ms
+     ✓ links an item’s stock level to its stock history 405ms
+ ✓ src/forecast/ForecastPage.test.tsx (9 tests) 1708ms
+   ✓ ForecastPage (9)
+     ✓ tells staff it is for managers, without asking the server 357ms
+ ✓ src/suppliers/SuppliersPage.test.tsx (23 tests) 3535ms
+   ✓ SuppliersPage (10)
+     ✓ lists suppliers from the API 544ms
+     ✓ adds a supplier 908ms
+     ✓ validates the form before sending anything 460ms
+     ✓ shows the server’s message next to the field for a duplicate name 410ms
+     ✓ won’t let letters into the phone number 343ms
+ ✓ src/items/ItemsPage.test.tsx (16 tests) 4560ms
+   ✓ ItemsPage (10)
+     ✓ adds an item linked to a supplier 1407ms
+     ✓ validates the form before sending anything 419ms
+     ✓ shows the server’s message for a duplicate name 668ms
+     ✓ edits an item 375ms
+     ✓ archives an item, can undo, and shows archived items on request 569ms
+     ✓ deletes an archived item after confirming, unless it has history 316ms
+     ✓ filters by search, category and supplier, and can clear filters 384ms
+ ✓ src/auth/AuthProvider.test.tsx (13 tests) 4442ms
+   ✓ development sign-in (8)
+     ✓ signs in as manager and sends the token with API calls 629ms
+   ✓ Cognito sign-in (5)
+     ✓ signs in with email and password 703ms
+     ✓ shows a clear message for a wrong password 452ms
+     ✓ asks a new user to choose their own password 1440ms
+     ✓ revokes the refresh token on sign-out 593ms
+ ✓ src/stock/StockPage.test.tsx (14 tests) 5050ms
+   ✓ StockPage — stock count (5)
+     ✓ lists active items with expected stock and shows the difference as you type 1006ms
+     ✓ saves only the items that were counted, and reports usage found 659ms
+   ✓ StockPage — record a movement (6)
+     ✓ records a delivery 636ms
+     ✓ records usage and waste 407ms
+     ✓ sends a negative quantity for an adjustment that removes stock 350ms
+     ✓ shows the server’s message when there isn’t enough stock 306ms
+   ✓ StockPage — activity (2)
+     ✓ shows recorded changes newest first, and daily usage for one item 840ms
+ ✓ src/roster/RosterPage.test.tsx (15 tests) 6018ms
+   ✓ RosterPage — manager (11)
+     ✓ shows the week: each shift in its day, totals, and hours per person 709ms
+     ✓ moves between weeks, and remembers the week in the address 399ms
+     ✓ adds a shift from a day column 1127ms
+     ✓ adds an open shift that ends at midnight 450ms
+     ✓ shows why a double booking was refused, next to the person 660ms
+     ✓ edits a shift: gives it to nobody (open), then deletes it 670ms
+     ✓ copies the week to the next one and explains anything it skipped 364ms
+     ✓ adds a team member, and removing one opens their shifts 1137ms
+
+ Test Files  12 passed (12)
+      Tests  123 passed (123)
+   Start at  22:25:00
+   Duration  9.75s (tests 44%, environment 35%, transform 8%, setup 6%, import 5%)
+
+
+exit code 0

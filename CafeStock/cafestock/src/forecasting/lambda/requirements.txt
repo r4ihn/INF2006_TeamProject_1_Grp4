@@ -1,0 +1,13 @@
+# What the forecast Lambda needs, pinned so the package is the same on every build.
+# `npm run lambda:build` downloads these as Linux (x86_64, Python 3.13) wheels — the
+# versions match forecasting/.venv, so the Lambda's numbers equal the laptop's.
+# boto3 isn't listed: the Lambda Python runtime already includes it.
+pg8000==1.31.5
+scramp==1.4.17
+asn1crypto==1.5.1
+python-dateutil==2.9.0.post0
+six==1.17.0
+lightgbm==4.7.0
+numpy==2.4.6
+scipy==1.17.1
+narwhals==2.26.0

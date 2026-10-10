@@ -1,0 +1,21 @@
+{
+  "agent": { "run_as_user": "root" },
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/cafestock/bootstrap.log",
+            "log_group_name": "__LOG_GROUP__",
+            "log_stream_name": "{instance_id}/bootstrap"
+          },
+          {
+            "file_path": "/var/log/cafestock/app.log",
+            "log_group_name": "__LOG_GROUP__",
+            "log_stream_name": "{instance_id}/app"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+# CafeStock API + web app (installed by deploy/ec2/bootstrap.sh)
+[Unit]
+Description=CafeStock API and web app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cafestock
+Group=cafestock
+WorkingDirectory=__APP_DIR__/backend
+EnvironmentFile=__ENV_DIR__/app.env
+ExecStart=__NODE_HOME__/bin/node dist/server.js
+Restart=always
+RestartSec=5
+# Graceful stop: the API closes connections on SIGTERM (e.g. when Auto Scaling replaces it)
+TimeoutStopSec=20
+StandardOutput=append:__LOG_DIR__/app.log
+StandardError=append:__LOG_DIR__/app.log
+# Hardening: no privilege escalation, read-only system, private /tmp
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=__LOG_DIR__
+
+[Install]
+WantedBy=multi-user.target

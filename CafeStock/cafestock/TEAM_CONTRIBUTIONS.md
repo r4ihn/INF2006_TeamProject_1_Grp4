@@ -1,0 +1,25 @@
+# Team contributions
+
+| Member (name, student ID) | Role | Artefacts / commits | Tests and evidence owned | Reflection (2–3 sentences) |
+| --- | --- | --- | --- | --- |
+| Mohamed Raihan Bin Ismail (2503274) | Team leader, web developer (full stack) | Database and web app built locally: `src/backend/` (Express API, Prisma schema with 14 models and enums in `src/backend/prisma/`, CRUD for suppliers, items and stock movements, manager-only vs staff routes, error handling, Helmet, CORS, JSON body limit), `src/frontend/` (UI/UX), `src/scripts/` (local build and test scripts), `src/docker/`, `src/docker-compose.yml` | `src/backend/tests/`, `src/frontend` tests, `evidence/test-functional.md` and `evidence/screenshots/functional-*.png`, `evidence/test-runs/SUMMARY.md` | Leading the team meant keeping the API contract stable so the cloud, data and testing work could proceed in parallel. Building role checks and validation into the API early saved rework once Cognito was added. |
+| Ho Shang Jay (2500526) | Web developer, AWS developer | PostgreSQL database (Prisma schema and migrations) and getting the React web app running locally; AWS deployment in the Learner Lab with CloudFormation: `src/infra/network.yaml`, `database.yaml`, `app.yaml`, `cognito.yaml`, `forecast.yaml`, `artifacts.yaml`, `src/deploy/ec2/`; connected the app and API to RDS PostgreSQL, S3 and Cognito; Cognito sign-in with staff and manager roles enforced on the server; forecast model upgrade (LightGBM vs 14-day moving average) | `evidence/deployment.md`, `evidence/test-security.md`, `evidence/screenshots/deployment-*.png` and `security-*.png`, `src/docs/aws-deploy.md`, `src/docs/cognito-setup.md` | Deploying to the Learner Lab taught me how its permission limits shape the architecture, for example dropping CloudFront. Enforcing roles on the server, not just hiding buttons in the UI, was the key security lesson. |
+| Hu Shi Yao (2500892) | Data analyst | Turned the coffee sales dataset into inventory data: `analytics/build_ledger.py` (recipe table mapping each drink to its ingredients, 17,049-row stock-movement ledger, daily and weekly demand tables), `analytics/forecast.py` (base forecast model), `analytics/evaluate_policy.py` (reorder-point method, moving-average baseline, walk-forward backtest with MASE), `analytics/demand_model.ipynb` | `evidence/test-data-ai.md`, `analytics/evaluation.md`, `analytics/forecast_backtest.csv`, `analytics/method_comparison*.csv`, `analytics/policy_comparison.csv`, `analytics/tests/` | The sales dataset had no inventory data, so building a believable ledger from recipes was the hardest and most important step. A simple baseline scored with MASE gave the team an honest standard for judging the LightGBM model. |
+| Goh Jason Fadil (2502643) | Demo video lead, product requirements and ideation | Shaped the product idea (stock, forecasting and roster app for small cafés), the problem statement and success criteria (SC-1 to SC-6), and the three core workflows (WF1–WF3); led the demo video of the AWS deployment, recorded the screen captures and directed the edits | Demo video, `evidence/screenshots/functional-*.png` used in the video, success criteria and workflows in the report | Setting clear success criteria early kept the build focused on what a small café actually needs. Scripting the demo around the three workflows made the deployment easy to show in a short video. |
+| Jason Woo (2502583) | AWS deployment and operations lead | Ran functional, security, resilience and CloudWatch monitoring tests on AWS; hosted and operated the team's main deployment in the AWS Academy Learner Lab using the team's deployment procedure; managed application updates and redeployments through S3 and CloudFormation; AWS cost estimates and cost-control decisions | `evidence/test-resilience.md`, `evidence/monitoring.md`, `evidence/availability-aws.md`, `evidence/smoke-aws.md`, `evidence/screenshots/monitoring-*.png` and `resilience-*.png`; testing, monitoring, resilience and cost sections of the report | Following someone else's deployment steps from scratch showed where the guide was unclear, and those gaps were fixed. Watching alarms and dashboards during the resilience tests made the value of monitoring concrete. |
+
+## How work was shared
+
+Raihan and Shang Jay built the web app and database locally first, then Shang Jay moved it to
+AWS with CloudFormation. Shi Yao prepared the dataset and the forecasting and reorder analysis in
+`analytics/`, while Jason Fadil set the product requirements, success criteria and workflows the
+build was judged against. Jason Woo, who didn't write the infrastructure templates, deployed the
+system from scratch by following the team's deployment guide and ran the functional, security,
+resilience and monitoring tests, which served as an independent review of that work. Each member
+reviewed the report sections closest to their own work. The AI assistant was used as described
+in `AI_USE_DECLARATION.md`.
+
+## Agreement
+
+All members have read this file and agree it's accurate: Mohamed Raihan Bin Ismail, Ho Shang Jay,
+Hu Shi Yao, Goh Jason Fadil, Jason Woo —  (10/10/2026).

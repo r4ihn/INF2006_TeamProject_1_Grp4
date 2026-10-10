@@ -1,0 +1,222 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1110" viewBox="0 0 1600 1110" font-family="'DejaVu Sans', 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+    <marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#888"/>
+    </marker>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #1f1f1f; }
+      .sub { font-size: 13px; fill: #555; }
+      .zone { fill: none; stroke: #999; stroke-width: 1.5; stroke-dasharray: 7 5; }
+      .zone-label { font-size: 13px; font-weight: 700; fill: #555; }
+      .vpc { fill: #f4f7fb; stroke: #6b8fbf; stroke-width: 1.5; stroke-dasharray: 7 5; }
+      .private { fill: #e8eff8; stroke: #8aa6cc; stroke-width: 1; }
+      .public { fill: #f1f7ec; stroke: #9cbf85; stroke-width: 1; }
+      .box { fill: #fff; stroke: #c8c8c8; stroke-width: 1; }
+      .name { font-size: 14px; font-weight: 700; fill: #1f1f1f; }
+      .detail { font-size: 12px; fill: #474747; }
+      .flow { stroke: #333; stroke-width: 1.7; fill: none; marker-end: url(#arrow); }
+      .flow-muted { stroke: #888; stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; marker-end: url(#arrow-muted); }
+      .legend { font-size: 12.5px; fill: #1f1f1f; }
+      .num { font-size: 11px; font-weight: 700; fill: #fff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1110" fill="#fff"/>
+  <text x="30" y="38" class="title">CafeStock on AWS — architecture</text>
+  <text x="30" y="60" class="sub">Names match the CloudFormation templates in infra/. Dashed borders are trust boundaries. Numbered arrows are the data flows listed at the bottom.</text>
+
+  <!-- ═══ Internet ═══ -->
+  <text x="30" y="104" class="zone-label">Internet</text>
+  <rect x="30" y="140" width="210" height="80" rx="10" class="box"/>
+  <rect x="30" y="140" width="6" height="80" fill="#666"/>
+  <text x="48" y="166" class="name">Café staff &amp; managers</text>
+  <text x="48" y="186" class="detail">web browser (React app)</text>
+  <text x="48" y="204" class="detail">roles: staff, manager</text>
+
+  <rect x="30" y="720" width="210" height="112" rx="10" class="box"/>
+  <rect x="30" y="720" width="6" height="112" fill="#666"/>
+  <text x="48" y="746" class="name">Team laptop</text>
+  <text x="48" y="766" class="detail">analytics/: LightGBM</text>
+  <text x="48" y="783" class="detail">training and evaluation</text>
+  <text x="48" y="800" class="detail">npm run app:build</text>
+  <text x="48" y="817" class="detail">npm run lambda:build</text>
+
+  <!-- ═══ AWS account ═══ -->
+  <rect x="270" y="80" width="1290" height="885" rx="14" class="zone"/>
+  <text x="288" y="102" class="zone-label">AWS account · us-east-1 (AWS Academy Learner Lab)</text>
+
+  <rect x="290" y="130" width="225" height="100" rx="10" class="box"/>
+  <rect x="290" y="130" width="6" height="100" fill="#8e5bb5"/>
+  <text x="308" y="156" class="name">API Gateway (HTTP API)</text>
+  <text x="308" y="176" class="detail">cafestock-web · HTTPS</text>
+  <text x="308" y="194" class="detail">throttling 50 requests/s</text>
+  <text x="308" y="212" class="detail">VPC link cafestock-vpc-link</text>
+
+  <rect x="290" y="270" width="225" height="100" rx="10" class="box"/>
+  <rect x="290" y="270" width="6" height="100" fill="#c0504d"/>
+  <text x="308" y="296" class="name">Amazon Cognito</text>
+  <text x="308" y="316" class="detail">user pool cafestock-users</text>
+  <text x="308" y="334" class="detail">groups: manager, staff</text>
+  <text x="308" y="352" class="detail">stack cafestock-cognito</text>
+
+  <!-- VPC -->
+  <rect x="545" y="120" width="710" height="690" rx="12" class="vpc"/>
+  <text x="562" y="142" class="zone-label" fill="#3f5f8a">VPC cafestock-vpc · 10.20.0.0/16 (stack cafestock-network)</text>
+
+  <rect x="562" y="156" width="676" height="316" rx="10" class="private"/>
+  <text x="578" y="178" class="zone-label">Private subnets (2 AZs) — no route to the internet</text>
+
+  <rect x="580" y="196" width="215" height="258" rx="10" class="box"/>
+  <rect x="580" y="196" width="6" height="258" fill="#8e5bb5"/>
+  <text x="598" y="222" class="name">Load balancer</text>
+  <text x="598" y="242" class="detail">cafestock-alb (internal)</text>
+  <text x="598" y="266" class="detail">+ AWS WAF cafestock-web</text>
+  <text x="598" y="284" class="detail">  common exploits,</text>
+  <text x="598" y="302" class="detail">  known bad inputs</text>
+  <text x="598" y="326" class="detail">403 unless the request</text>
+  <text x="598" y="344" class="detail">carries API Gateway's</text>
+  <text x="598" y="362" class="detail">secret header</text>
+  <text x="598" y="386" class="detail">health check /health</text>
+  <text x="598" y="410" class="detail">security group: port 80</text>
+  <text x="598" y="428" class="detail">from the VPC link only</text>
+
+  <rect x="825" y="196" width="195" height="110" rx="10" class="box"/>
+  <rect x="825" y="196" width="6" height="110" fill="#3b73b9"/>
+  <text x="843" y="222" class="name">RDS PostgreSQL 17</text>
+  <text x="843" y="242" class="detail">cafestock-db, db.t3.micro</text>
+  <text x="843" y="260" class="detail">encrypted, TLS forced</text>
+  <text x="843" y="278" class="detail">not publicly accessible</text>
+  <text x="843" y="296" class="detail">stack cafestock-database</text>
+
+  <rect x="1040" y="196" width="180" height="110" rx="10" class="box"/>
+  <rect x="1040" y="196" width="6" height="110" fill="#777"/>
+  <text x="1058" y="222" class="name">VPC endpoints</text>
+  <text x="1058" y="242" class="detail">S3 (gateway, free)</text>
+  <text x="1058" y="260" class="detail">Secrets Manager</text>
+  <text x="1058" y="278" class="detail">(interface)</text>
+  <text x="1058" y="296" class="detail">instead of NAT</text>
+
+  <rect x="1040" y="332" width="180" height="130" rx="10" class="box"/>
+  <rect x="1040" y="332" width="6" height="130" fill="#e07b39"/>
+  <text x="1058" y="356" class="name">Lambda</text>
+  <text x="1058" y="374" class="name">cafestock-forecast</text>
+  <text x="1058" y="394" class="detail">Python 3.13</text>
+  <text x="1058" y="412" class="detail">LightGBM vs 14-day avg</text>
+  <text x="1058" y="430" class="detail">writes forecasts and</text>
+  <text x="1058" y="448" class="detail">reorder advice</text>
+
+  <rect x="562" y="492" width="676" height="300" rx="10" class="public"/>
+  <text x="1224" y="512" class="zone-label" text-anchor="end">Public subnets (2 AZs)</text>
+
+  <rect x="580" y="524" width="640" height="252" rx="10" class="box"/>
+  <rect x="580" y="524" width="6" height="252" fill="#e07b39"/>
+  <text x="598" y="550" class="name">EC2 Auto Scaling group cafestock-app (stack cafestock-app)</text>
+  <text x="598" y="570" class="detail">1–2 × t3.micro · Amazon Linux 2023 · IMDSv2 · scales on CPU (60%) · ELB health checks</text>
+  <text x="598" y="588" class="detail">security group: port 3000 from the load balancer only · no SSH</text>
+  <rect x="600" y="604" width="290" height="158" rx="8" fill="#fff8f1" stroke="#e8c7a8"/>
+  <text x="616" y="628" class="name">App server (AZ a)</text>
+  <text x="616" y="648" class="detail">Node.js 24: Express API + built</text>
+  <text x="616" y="666" class="detail">React web app (one origin)</text>
+  <text x="616" y="684" class="detail">systemd, unprivileged user</text>
+  <text x="616" y="702" class="detail">Prisma → RDS over TLS</text>
+  <text x="616" y="720" class="detail">CloudWatch agent (logs)</text>
+  <text x="616" y="738" class="detail">set up by deploy/ec2/bootstrap.sh</text>
+  <rect x="910" y="604" width="290" height="158" rx="8" fill="#fff8f1" stroke="#e8c7a8" stroke-dasharray="4 3"/>
+  <text x="926" y="628" class="name">App server (AZ b)</text>
+  <text x="926" y="648" class="detail">started when CPU is busy,</text>
+  <text x="926" y="666" class="detail">or to replace a failed server</text>
+
+  <!-- Regional services, right column -->
+  <rect x="1295" y="130" width="245" height="84" rx="10" class="box"/>
+  <rect x="1295" y="130" width="6" height="84" fill="#8e5bb5"/>
+  <text x="1313" y="156" class="name">EventBridge rule</text>
+  <text x="1313" y="176" class="detail">cafestock-forecast-nightly</text>
+  <text x="1313" y="194" class="detail">18:00 UTC = 2 am Singapore</text>
+
+  <rect x="1295" y="236" width="245" height="112" rx="10" class="box"/>
+  <rect x="1295" y="236" width="6" height="112" fill="#3b73b9"/>
+  <text x="1313" y="262" class="name">S3 bucket</text>
+  <text x="1313" y="282" class="detail">cafestock-artifacts-…</text>
+  <text x="1313" y="300" class="detail">app/ release · lambda/ package</text>
+  <text x="1313" y="318" class="detail">models/lgbm-v1 (versioned)</text>
+  <text x="1313" y="336" class="detail">private, encrypted, HTTPS only</text>
+
+  <rect x="1295" y="370" width="245" height="84" rx="10" class="box"/>
+  <rect x="1295" y="370" width="6" height="84" fill="#c0504d"/>
+  <text x="1313" y="396" class="name">Secrets Manager</text>
+  <text x="1313" y="416" class="detail">cafestock/database</text>
+  <text x="1313" y="434" class="detail">generated DB password</text>
+
+  <rect x="1295" y="476" width="245" height="196" rx="10" class="box"/>
+  <rect x="1295" y="476" width="6" height="196" fill="#4f9a55"/>
+  <text x="1313" y="502" class="name">CloudWatch</text>
+  <text x="1313" y="522" class="detail">logs: /cafestock/app,</text>
+  <text x="1313" y="540" class="detail">/aws/lambda/cafestock-forecast</text>
+  <text x="1313" y="558" class="detail">metrics: CafeStock/Forecast</text>
+  <text x="1313" y="576" class="detail">dashboards: cafestock-app,</text>
+  <text x="1313" y="594" class="detail">cafestock-forecast</text>
+  <text x="1313" y="612" class="detail">alarms: forecast failed/missed,</text>
+  <text x="1313" y="630" class="detail">urgent items, unhealthy server,</text>
+  <text x="1313" y="648" class="detail">5xx errors, DB CPU/storage</text>
+
+  <rect x="1295" y="700" width="245" height="84" rx="10" class="box"/>
+  <rect x="1295" y="700" width="6" height="84" fill="#8e5bb5"/>
+  <text x="1313" y="726" class="name">SNS topic</text>
+  <text x="1313" y="746" class="detail">cafestock-forecast-alerts</text>
+  <text x="1313" y="764" class="detail">→ e-mail to the team</text>
+
+  <!-- CloudFormation strip -->
+  <rect x="290" y="840" width="1250" height="96" rx="10" class="box"/>
+  <rect x="290" y="840" width="6" height="96" fill="#666"/>
+  <text x="308" y="866" class="name">AWS CloudFormation: everything above is infrastructure as code (infra/*.yaml)</text>
+  <text x="308" y="888" class="detail">stacks: cafestock-cognito · cafestock-artifacts · cafestock-network · cafestock-database · cafestock-app · cafestock-forecast</text>
+  <text x="308" y="908" class="detail">permissions: the Learner Lab's LabRole (Lambda) and LabInstanceProfile (EC2); no IAM users or access keys</text>
+  <text x="308" y="926" class="detail">monitoring stays in CloudWatch; the password stays in Secrets Manager (read at start-up, never in code)</text>
+
+  <!-- ═══ Flows ═══ -->
+  <!-- 1 browser → API Gateway -->
+  <path d="M240,170 L288,170" class="flow"/>
+  <circle cx="262" cy="156" r="9" fill="#333"/><text x="262" y="160" class="num" text-anchor="middle">1</text>
+  <!-- 2 browser → Cognito -->
+  <path d="M135,220 L135,320 L288,320" class="flow"/>
+  <circle cx="135" cy="270" r="9" fill="#333"/><text x="135" y="274" class="num" text-anchor="middle">2</text>
+  <!-- 3 API Gateway → load balancer -->
+  <path d="M515,180 L555,180 L555,300 L578,300" class="flow"/>
+  <circle cx="535" cy="180" r="9" fill="#333"/><text x="535" y="184" class="num" text-anchor="middle">3</text>
+  <!-- 4 load balancer → app server -->
+  <path d="M700,454 L700,522" class="flow"/>
+  <circle cx="700" cy="482" r="9" fill="#333"/><text x="700" y="486" class="num" text-anchor="middle">4</text>
+  <!-- 5 app server → RDS -->
+  <path d="M860,524 L860,308" class="flow"/>
+  <circle cx="860" cy="482" r="9" fill="#333"/><text x="860" y="486" class="num" text-anchor="middle">5</text>
+  <!-- 6 app servers → S3 and Secrets Manager (at start-up) -->
+  <path d="M1220,560 L1272,560 L1272,300 L1293,300" class="flow"/>
+  <path d="M1272,412 L1293,412" class="flow"/>
+  <circle cx="1272" cy="490" r="9" fill="#333"/><text x="1272" y="494" class="num" text-anchor="middle">6</text>
+  <!-- 7 EventBridge → Lambda -->
+  <path d="M1295,172 L1242,172 L1242,380 L1222,380" class="flow"/>
+  <circle cx="1242" cy="330" r="9" fill="#333"/><text x="1242" y="334" class="num" text-anchor="middle">7</text>
+  <!-- 8 Lambda → RDS -->
+  <path d="M1040,395 L960,395 L960,308" class="flow"/>
+  <circle cx="990" cy="395" r="9" fill="#333"/><text x="990" y="399" class="num" text-anchor="middle">8</text>
+  <!-- 9 Lambda → endpoints -->
+  <path d="M1130,332 L1130,308" class="flow"/>
+  <circle cx="1150" cy="320" r="9" fill="#333"/><text x="1150" y="324" class="num" text-anchor="middle">9</text>
+  <!-- 10 logs → CloudWatch, alarms → SNS -->
+  <path d="M1220,640 L1293,640" class="flow-muted"/>
+  <path d="M1418,672 L1418,698" class="flow-muted"/>
+  <circle cx="1256" cy="640" r="9" fill="#888"/><text x="1256" y="644" class="num" text-anchor="middle">10</text>
+  <!-- 11 team laptop → S3 -->
+  <path d="M240,800 L256,800 L256,985 L1578,985 L1578,292 L1542,292" class="flow-muted"/>
+  <circle cx="900" cy="985" r="10" fill="#888"/><text x="900" y="989" class="num" text-anchor="middle">11</text>
+
+  <!-- Legend -->
+  <text x="30" y="1020" class="legend" font-weight="700">Data flows</text>
+  <text x="30" y="1040" class="legend">1 Browser → API Gateway over HTTPS: pages and API calls, with a Cognito access token.   2 Browser signs in with Cognito directly (HTTPS, email + password).</text>
+  <text x="30" y="1058" class="legend">3 API Gateway → internal load balancer through the VPC link, adding the secret header.   4 Load balancer → app servers on port 3000.   5 App servers → RDS (TLS, certificate verified).</text>
+  <text x="30" y="1076" class="legend">6 At start-up, app servers download the release from S3 and read the DB password from Secrets Manager.   7 Nightly trigger.   8 Lambda → RDS (TLS).   9 Lambda → model (S3) and DB secret via VPC endpoints.</text>
+  <text x="30" y="1094" class="legend">10 Logs and metrics → CloudWatch; alarms and failed forecast runs → SNS e-mail.   11 The team uploads the app release, the Lambda package and the trained model to S3.</text>
+</svg>

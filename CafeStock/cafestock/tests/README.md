@@ -1,0 +1,17 @@
+# Tests
+
+All automated tests live next to the code in `src/`. Run them from `src/`. The recorded output of
+our own run is in `evidence/test-runs/SUMMARY.md`.
+
+| Suite                                   | Where                                 | Command                                                       | What it covers                                                                                                                                                                                                 |
+| --------------------------------------- | ------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend API + database                  | `src/backend/tests/` (`unit/`, `db/`) | `npm test` (needs `npm run db:up`)                            | Every API route with a real PostgreSQL database: validation (400), sign-in (401), roles (403), café isolation, stock movements and counts, dataset import, forecast API, serving the web app, security headers |
+| Web app                                 | `src/frontend/src/**/*.test.tsx`      | `npm test`                                                    | Pages and forms in a simulated browser: stock recording, counts, validation messages, forecast page, sign-in, notices                                                                                          |
+| Forecast engine + Lambda                | `src/forecasting/tests/`              | `npm run forecast:setup` once, then `npm run forecast:test`   | Reorder maths against hand-worked numbers, walk-forward without future data, publishing in one transaction, the nightly Lambda (failures, retries, locks, S3 model, TLS settings)                              |
+| ML model                                | `src/analytics/tests/`                | `npm run analytics:setup` once, then `npm run analytics:test` | The snapshot equals the dataset; model and baseline are scored on the same days; no future data; deterministic training; results reproduce                                                                     |
+| Everything above, recorded              | —                                     | `npm run evidence:tests`                                      | Runs all suites and saves dated output to `evidence/test-runs/`                                                                                                                                                |
+| Smoke test (repeatable, any deployment) | `src/scripts/smoke-test.mjs`          | `npm run smoke -- <app address>`                              | Health, database, page, 401 for anonymous and forged tokens, security headers, HTTPS, WAF                                                                                                                      |
+| Availability watch                      | `src/scripts/smoke-test.mjs`          | `npm run smoke -- <app address> --watch 900`                  | One request per second; availability and longest outage while a server is terminated                                                                                                                           |
+
+The four required test records (functional, security, data/AI, resilience) are in
+`evidence/test-*.md`.

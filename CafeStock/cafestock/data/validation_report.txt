@@ -1,0 +1,64 @@
+loaded 3547 rows, 11 columns
+consistency check: hour mismatches=1, weekday mismatches=0
+cleaned: 3547 transactions, 2024-03-01 to 2025-03-23
+built 8 ingredients, 36 recipe lines
+
+ledger: 17049 movements
+  by type:
+movement_type
+SELL        16743
+RECEIVE       252
+SPOILAGE       29
+ADJUST         25
+  by source:
+source
+derived      16743
+synthetic      306
+daily demand: 3104 rows (388 days x 8 ingredients)
+weekly demand: 448 rows
+
+share of days with zero consumption (lower is better for forecasting):
+  Espresso beans             2%
+  Napkin                     2%
+  Paper cup 12oz             2%
+  Cup lid 12oz               2%
+  Fresh milk                 3%
+  Paper cup 8oz             42%
+  Drinking chocolate        60%
+  Cocoa powder              64%
+
+--- validation ---
+closing stock (SUM of all movements):
+  Espresso beans             1559 g
+  Fresh milk                 5700 ml
+  Drinking chocolate          224 g
+  Cocoa powder                257 g
+  Paper cup 8oz                 7 unit
+  Paper cup 12oz               66 unit
+  Cup lid 12oz                117 unit
+  Napkin                       65 unit
+PASS: running balance stays non-negative throughout
+consumed units: 467578 (recipe expansion of 3547 sales expects 467578)
+PASS: every sale expanded through its recipe exactly once
+distinct sales traceable in the ledger: 3547 of 3547
+PASS: every source transaction is traceable via sale_id
+
+stockout events requiring an emergency top-up: 6
+spoilage by ingredient (expired as % of consumed):
+  Espresso beans           0.0%  (0 of 41058 g)
+  Fresh milk               8.6%  (34745 of 403420 ml)
+  Drinking chocolate       0.0%  (0 of 6900 g)
+  Cocoa powder             0.0%  (0 of 5975 g)
+  Paper cup 8oz            0.0%  (0 of 416 unit)
+  Paper cup 12oz           0.0%  (0 of 3131 unit)
+  Cup lid 12oz             0.0%  (0 of 3131 unit)
+  Napkin                   0.0%  (0 of 3547 unit)
+
+result: ALL CHECKS PASSED
+
+--- output checksums (sha256, first 16 chars) ---
+  ingredients.csv          9a8b65785d329fc9
+  recipes.csv              3bd26ffce7a98711
+  stock_movements.csv      faf5a21d5fb14ce2
+  daily_demand.csv         b6e6e39bc7b1e788
+  weekly_demand.csv        61c60af83ffc11d6

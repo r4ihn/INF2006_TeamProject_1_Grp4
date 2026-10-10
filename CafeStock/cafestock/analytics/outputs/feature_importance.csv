@@ -1,0 +1,11 @@
+feature,share,description
+std_28,0.1756,"Standard deviation of daily demand over the last 28 days, ÷ level"
+mean_14,0.1669,"Average demand over the last 14 days, ÷ level"
+weekday,0.1493,Weekday of the forecast day (0 = Monday … 6 = Sunday)
+weekday_avg_4w,0.1356,"Average demand on that weekday over the last 4 weeks, ÷ level"
+same_weekday_1w,0.1083,"Demand on the same weekday a week before, ÷ level"
+zero_share_28,0.1011,Share of the last 28 days with zero demand (0–1)
+mean_7,0.0762,"Average demand over the last 7 days, ÷ level"
+same_weekday_2w,0.066,"Demand on the same weekday two weeks before, ÷ level"
+last_day,0.0118,"Demand on the most recent day, ÷ level"
+days_ahead,0.0091,How many days ahead the forecast day is (1–7)
